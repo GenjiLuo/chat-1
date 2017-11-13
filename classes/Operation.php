@@ -17,7 +17,13 @@ class Operation
 
 
 
-    public function message($server, $frame)
+    public static function open($server,$frame){
+
+    }
+
+
+
+    public static function message($server, $frame)
     {
         $data = json_decode($frame->data, true);
         $type = $data['type'];

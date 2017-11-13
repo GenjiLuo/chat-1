@@ -1,5 +1,6 @@
 <?php
 use Swoole\WebSocket\Server;
+use classes\Operation;
 /**
  * zjw
  * Date: 2017/11/6
@@ -24,11 +25,12 @@ class ChatServer{
         spl_autoload_register([get_called_class(),"autoLoad"]);
 
         self::$server->on("open",function(Server $server,$frame){
+            Operation::open($server,$frame);
         });
 
 
         self::$server->on("message",function(Server $server,$frame){
-            self::$app->operation->message($server,$frame);
+           Operation::message($server,$frame);
         });
 
 
@@ -43,6 +45,7 @@ class ChatServer{
 
         self::$server->start();
     }
+
 
     /**
      * zjw
