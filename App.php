@@ -15,6 +15,11 @@ class App{
     }
 
 
+    public function __set($name, $value)
+    {
+        // TODO: Implement __set() method.
+    }
+
     public function __get($name)
     {
         if (isset( $this->container[$name])){
