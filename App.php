@@ -11,14 +11,21 @@ class App{
 
     public function __construct($config)
     {
-        $this->container  =$config;
+
+        $this->container  = $config;
+        spl_autoload_register([get_called_class(),"autoLoad"]);
+
     }
 
 
     public function __set($name, $value)
     {
-        // TODO: Implement __set() method.
+         $this->container[$name] = function($value){
+            return new $value['class']($value);
+         };
     }
+
+
 
     public function __get($name)
     {
@@ -27,29 +34,23 @@ class App{
             if( $obj instanceof stdClass){
                 return $obj;
             }else if(is_array($obj)){
-                $class = $this->createObject($obj);
+                $class = new $obj['class']($obj);
                 $this->container[$name] = $class;
             }
             return  $this->container[$name];
         }
+        return null;
     }
+
 
     /**
      * zjw
-     * @param $obj
-     * @return null
-     * 创建对象，cli模式下自动加载无法运行
+     * @param $className
      */
-    public  function createObject($obj){
-        $class = $obj['class'];
-        $classFile = BASE_ROOT.DIRECTORY_SEPARATOR.$class.".php";
-        $classFile = str_replace("\\","/",$classFile);
-        if(!is_file($classFile)){
-            return null;
+    public function autoLoad($className){
+        $fileName = BASE_ROOT."/".str_replace("\\","/",$className.".php");
+        if(is_file($fileName)){
+            require_once $fileName;
         }
-        require $classFile;
-        unset($obj['class']);
-        $class =  new $class($obj);
-        return $class;
     }
 }
