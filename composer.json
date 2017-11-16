@@ -1,5 +1,8 @@
 {
     "require-dev": {
         "eaglewu/swoole-ide-helper": "dev-master"
+    },
+    "require": {
+        "catfan/Medoo": "^1.4"
     }
 }

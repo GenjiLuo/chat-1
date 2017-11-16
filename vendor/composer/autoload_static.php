@@ -11,12 +11,20 @@ class ComposerStaticInitc6baa67d579494e3af213dc5a92a1d94
         array (
             'Swoole\\' => 7,
         ),
+        'M' => 
+        array (
+            'Medoo\\' => 6,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
         'Swoole\\' => 
         array (
             0 => __DIR__ . '/..' . '/eaglewu/swoole-ide-helper/src',
+        ),
+        'Medoo\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/catfan/medoo/src',
         ),
     );
 

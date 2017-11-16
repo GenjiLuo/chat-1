@@ -7,4 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Swoole\\' => array($vendorDir . '/eaglewu/swoole-ide-helper/src'),
+    'Medoo\\' => array($vendorDir . '/catfan/medoo/src'),
 );
