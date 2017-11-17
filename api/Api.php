@@ -1,5 +1,4 @@
 <?php
-use api\lib\Router;
 /**
  * zjw
  * Date: 2017/11/16
@@ -15,9 +14,14 @@ class Api{
     public  static function init($app){
         spl_autoload_register([get_called_class(),"autoLoad"]);
         self::$app = $app;
-        Router::run();
+        self::run();
     }
 
+
+    public static function run(){
+        $data =  self::$app->router->run();
+        self::$app->response->send($data);
+    }
 
     /**
      * zjw

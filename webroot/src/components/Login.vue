@@ -11,7 +11,7 @@
                           @keyup.enter.native="handleSubmit"></el-input>
             </el-form-item>
             <el-form-item style="width:100%;">
-                <el-button type="primary" style="width:100%;">
+                <el-button type="primary" style="width:100%;" @click="handleLogin">
                     登录
                 </el-button>
             </el-form-item>
@@ -46,7 +46,11 @@
     methods: {
       handleSubmit () {
         return ''
+      },
+      handleLogin(){
+
       }
+
     }
   }
 </script>
