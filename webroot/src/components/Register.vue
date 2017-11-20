@@ -1,10 +1,12 @@
 <template>
     <div class="login_start">
-        <el-form :model="registerForm" :rules="registerFormRule" ref="ruleForm2" label-position="left" label-width="0px"
+        <el-form :model="registerForm" :rules="registerFormRule" ref="registerForm" label-position="left"
+                 label-width="0px"
                  class="login-container">
             <h2 class="title">注册账号</h2>
-            <el-form-item prop="account">
-                <el-input type="text" v-model="registerForm.account" auto-complete="off" placeholder="账号/昵称"></el-input>
+            <el-form-item prop="username">
+                <el-input type="text" v-model="registerForm.username" auto-complete="off"
+                          placeholder="账号/昵称"></el-input>
             </el-form-item>
             <el-form-item prop="password">
                 <el-input type="password" v-model="registerForm.password" auto-complete="off" placeholder="密码"
@@ -16,7 +18,7 @@
             </el-form-item>
 
             <el-form-item style="width:100%;">
-                <el-button type="primary" style="width:100%;">
+                <el-button type="primary" style="width:100%;" @click="handleRegister">
                     确定
                 </el-button>
             </el-form-item>
@@ -32,26 +34,77 @@
 
 </template>
 <script>
+  import {register, checkUsername} from '../api/api.js'
+
   export default {
     data () {
+      const validatePass = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输入密码'))
+        } else {
+          if (this.registerForm.checkPwd !== '') {
+            this.$refs.registerForm.validateField('checkPwd')
+          }
+          callback()
+        }
+      }
+      const validatePass2 = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请再次输入密码'))
+        } else if (value !== this.registerForm.password) {
+          callback(new Error('两次输入密码不一致!'))
+        } else {
+          callback()
+        }
+      }
+      const validateUsername = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输出用户名'))
+        }
+        checkUsername({username: value}).then(res => {
+          if (parseInt(res.status) !== 1) {
+            callback(new Error('该用户名已注册'))
+          } else {
+            callback()
+          }
+        })
+      }
       return {
         registerForm: {
-          account: '',
+          username: '',
           password: '',
           checkPwd: ''
         },
         registerFormRule: {
-          account: [
-            {required: true, message: '请输入账号', trigger: 'blur'}
+          username: [
+            {validator: validateUsername, trigger: 'blur'}
           ],
           password: [
-            {required: true, message: '请输入密码', trigger: 'blur'}
+            {validator: validatePass, trigger: 'blur'}
           ],
           checkPwd: [
-            {required: true, message: '请再次输入密码', trigger: 'blur'}
+            {validator: validatePass2, trigger: 'blur'}
           ]
         },
         imageUrl: ''
+      }
+    },
+    methods: {
+      handleRegister () {
+        this.$refs.registerForm.validate(result => {
+          if (result) {
+            register(this.registerForm).then(res => {
+              if (parseInt(res.status) === 1) {
+                this.$alert('注册成功', '恭喜', {
+                  confirmButtonText: '跳转登录',
+                  callback: () => {
+                    this.$router.push('login')
+                  }
+                })
+              }
+            })
+          }
+        })
       }
     }
   }

@@ -11,7 +11,7 @@ class ChatServer{
 
     public  static $app;
 
-    public  static function init(Api $app){
+    public  static function init(App $app){
 
         self::$app = $app;
 

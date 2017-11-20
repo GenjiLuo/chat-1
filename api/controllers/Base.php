@@ -13,7 +13,6 @@ class Base{
     }
 
     public function beforeAction(){
-        //todo
         return true;
     }
 

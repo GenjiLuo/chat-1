@@ -3,24 +3,24 @@
  * zjw
  * Date: 2017/11/16
  */
-class Api{
+class App{
 
-    public static $app;
+    public static $DI;
 
     /**
      * zjw
-     * @param $app
+     * @param $DI
      */
-    public  static function init($app){
+    public  static function init($DI){
         spl_autoload_register([get_called_class(),"autoLoad"]);
-        self::$app = $app;
+        self::$DI = $DI;
         self::run();
     }
 
 
     public static function run(){
-        $data =  self::$app->router->run();
-        self::$app->response->send($data);
+        $data =  self::$DI->router->run();
+        self::$DI->response->send($data);
     }
 
     /**

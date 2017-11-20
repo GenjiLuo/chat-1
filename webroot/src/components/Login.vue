@@ -1,14 +1,13 @@
 <template>
     <div class="login_start">
-        <el-form :model="loginForm" :rules="loginFormRules" ref="ruleForm2" label-position="left" label-width="0px"
+        <el-form :model="loginForm" :rules="loginFormRules" ref="loginForm" label-position="left" label-width="0px"
                  class="login-container">
             <h2 class="title"><img src="../assets/logo.jpg" alt="" class="logo" width="32" height="32">svp在线IM</h2>
-            <el-form-item prop="account">
-                <el-input type="text" v-model="loginForm.account" auto-complete="off" placeholder="账号"></el-input>
+            <el-form-item prop="username">
+                <el-input type="text" v-model="loginForm.username" auto-complete="off" placeholder="账号"></el-input>
             </el-form-item>
-            <el-form-item prop="checkPass">
-                <el-input type="password" v-model="loginForm.password" auto-complete="off" placeholder="密码"
-                          @keyup.enter.native="handleSubmit"></el-input>
+            <el-form-item prop="password">
+                <el-input type="password" v-model="loginForm.password" auto-complete="off" placeholder="密码"></el-input>
             </el-form-item>
             <el-form-item style="width:100%;">
                 <el-button type="primary" style="width:100%;" @click="handleLogin">
@@ -23,34 +22,52 @@
                 </router-link>
             </el-form-item>
         </el-form>
-        <!--<footer>-->
-        <!--<p class="">版权所有：深圳市联云谷科技有限公司</p>-->
-        <!--<p class="">电话：400-888-5840 备案号：粤ICP备16109127号-1</p>-->
-        <!--</footer>-->
+
     </div>
 </template>
 <script>
+  import {login} from '../api/api'
+
   export default {
     data () {
       return {
         checked: '',
-        username: '',
         password: '',
         loginForm: {
           password: '',
-          account: ''
+          username: ''
         },
-        loginFormRules: {}
+        loginFormRules: {
+          password:
+            {required: true, message: '请输入登录密码', trigger: 'blur'},
+          username:
+            {required: true, message: '请输入账号', trigger: 'blur'}
+
+        }
       }
     },
     methods: {
-      handleSubmit () {
-        return ''
-      },
-      handleLogin(){
-
+      handleLogin () {
+        this.$refs.loginForm.validate(result => {
+          if (result) {
+            login(this.loginForm).then(res => {
+              if (parseInt(res.status) === 1) {
+                localStorage.setItem('token', res.token)
+                localStorage.setItem('user', JSON.stringify(res.user))
+                this.$router.push('/')
+              } else {
+                this.$alert('账号或密码错误', 'error', {
+                  confirmButtonText: '确定',
+                  type: 'warning',
+                  callback: () => {
+                    this.$router.push('login')
+                  }
+                })
+              }
+            })
+          }
+        })
       }
-
     }
   }
 </script>
