@@ -7,7 +7,9 @@ use App;
  */
 class UserModel extends BaseModel {
 
-    public static $defaultAvatar = "/static/avatar/default.jpg";
+
+    public static $defaultPath = "/static/avatar/";
+    public static $defaultAvatar = "default.jpg";
 
     /**
      * zjw
@@ -40,12 +42,20 @@ class UserModel extends BaseModel {
      * @return bool
      */
     public static function add($data){
-        $data['avatar'] = self::$defaultAvatar;
+        $data['avatar'] =self::$defaultPath.self::$defaultAvatar;
         $data['nickname'] = $data['username'];
         App::$DI->db->insert(self::tableName(),$data);
         if( App::$DI->db->id() ){
             return App::$DI->db->id();
         }
         return false;
+    }
+
+    public static function findAll($where=[]){
+        $users = App::$DI->db->select(self::tableName(),['username','id','avatar','nickname'],$where);
+        array_walk($users,function(&$v,$k){
+            $v['avatar'] = BASE_URL.$v['avatar'];
+        });
+        return $users;
     }
 }

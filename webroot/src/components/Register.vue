@@ -23,7 +23,7 @@
                 </el-button>
             </el-form-item>
             <el-form-item style="width:100%;">
-                <router-link to="/register">
+                <router-link to="/">
                     <el-button type="info" style="width:100%;">
                         取消
                     </el-button>
@@ -98,7 +98,7 @@
                 this.$alert('注册成功', '恭喜', {
                   confirmButtonText: '跳转登录',
                   callback: () => {
-                    this.$router.push('login')
+                    this.$router.push('/')
                   }
                 })
               }

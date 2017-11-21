@@ -1,5 +1,5 @@
 <?php
-namespace lib;
+namespace common\lib;
 use \Redis;
 class MyRedis extends Redis{
 

@@ -1,19 +1,16 @@
 <?php
 use Swoole\WebSocket\Server;
-use classes\Operation;
+use server\classes\Operation;
 /**
  * zjw
- * Date: 2017/11/6
+ * 2017/11/6
  */
 class ChatServer{
 
     public static $server;
 
-    public  static $app;
 
-    public  static function init(App $app){
-
-        self::$app = $app;
+    public  static function init(){
 
         self::$server= new Server(SERVER_HOST,SERVER_PORT);
 
@@ -33,7 +30,7 @@ class ChatServer{
 
 
         self::$server->on("close",function(Server $server,$fd,$reactorId){
-            self::$app->operation->close($server,$fd,$reactorId);
+            Operation::close($server,$fd,$reactorId);
         });
 
         self::$server->start();

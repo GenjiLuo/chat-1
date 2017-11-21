@@ -54,20 +54,17 @@
               if (parseInt(res.status) === 1) {
                 localStorage.setItem('token', res.token)
                 localStorage.setItem('user', JSON.stringify(res.user))
-                this.$router.push('/')
+                this.$router.push('/chat')
               } else {
-                this.$alert('账号或密码错误', 'error', {
-                  confirmButtonText: '确定',
-                  type: 'warning',
-                  callback: () => {
-                    this.$router.push('login')
-                  }
-                })
+                this.$message.error('账号或密码错误!')
               }
             })
           }
         })
       }
+    },
+    mounted () {
+
     }
   }
 </script>

@@ -1,6 +1,6 @@
 <?php
 namespace server\classes\operation;
-use ChatServer;
+use App;
 /**
  * zjw
  * Date: 2017/11/10
@@ -13,6 +13,6 @@ class Login extends Base {
      * 登录
      */
     public static function run($server,$frame){
-        ChatServer::$app->redis->sadd(CLIENT_ONLINE, $frame->fd);
+        App::$DI->redis->sadd(CLIENT_ONLINE, $frame->fd);
     }
 }

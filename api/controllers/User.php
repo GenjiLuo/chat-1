@@ -65,10 +65,35 @@ class User extends Base {
 
     /**
      * zjw
+     * @return array
      */
-    public function add(){
-
+    public function LoginByToken(){
+        $token = App::$DI->request->get("token");
+        $user = UserModel::findOne(["access_token"=>$token,'access_ip'=>App::$DI->request->getIp(),"token_expired[>]"=>time()]);
+        if($user){
+            return ['status'=>1,'user'=>$user];
+        }
+        return ['status'=>0];
     }
 
+    /**
+     * zjw
+     */
+    public function avatar(){
+        $file = $_FILES['file'];
+        if (!$file['error']){
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $name = md5($file['name'].time()).".".$ext;
+            $savePath = UserModel::$defaultPath.$name;
+            move_uploaded_file($file['tmp_name'],BASE_ROOT.$savePath);
+            $token = App::$DI->request->get("token");
+            $query  = UserModel::update(["avatar"=>$savePath],['access_token'=>$token]);
+            if($query->rowCount()){
+                return ["status"=>1,'avatar'=>BASE_URL.$savePath];
+            }
+            return ["status"=>0];
+        }
+        return ["status"=>0];
+    }
 
 }

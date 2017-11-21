@@ -3,7 +3,10 @@
 namespace server\classes;
 
 use ChatServer;
-use server\classes\operation\ClientLogin;
+use server\classes\operation\Close;
+use server\classes\operation\Login;
+use App;
+use server\classes\operation\Open;
 
 /**
  * zjw
@@ -18,22 +21,22 @@ class Operation
 
 
     public static function open($server,$frame){
-
+        Open::run($server,$frame);
     }
 
 
 
-    public static function message($server, $frame)
+    public static function message($server,$frame)
     {
         $data = json_decode($frame->data, true);
         $type = $data['type'];
         switch ($type) {
             case self::CLIENT_LOGIN :
-                ClientLogin::run($server,$frame);
+                Login::run($server,$frame);
                 break;
             case self::MSG_MESSAGE :
                 $fd = $frame->fd;
-                ChatServer::$app->redis->rpush("member:" . $fd . ":message", $data["data"]);
+                App::$DI->redis->rpush("member:" . $fd . ":message", $data["data"]);
         }
     }
 
@@ -62,20 +65,8 @@ class Operation
      * @param $reactorId
      * 关闭处理
      */
-    public function close($server,$fd,$reactorId){
-
-        $redis =  ChatServer::$app->redis;
-        if($redis->sIsMember(CLIENT_ONLINE,$fd)){
-            $redis->sRem(CLIENT_ONLINE,$fd);
-        }
-        if($redis->sIsMember(SERVER_ONLINE,$fd)){
-            $redis->sRem(SERVER_ONLINE,$fd);
-            $servers = $redis->sMembers(CLIENT_ONLINE);
-            foreach ($servers as $val){
-
-            }
-        }
-
+    public static function close($server,$fd,$reactorId){
+        Close::run($server,$fd,$reactorId);
     }
 
 }

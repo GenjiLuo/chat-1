@@ -3,5 +3,5 @@
  * zjw
  * 2017/11/6
  */
-define("CLIENT_ONLINE","client:online");
+define("USER_ONLINE","user:online");
 define("SERVER_ONLINE","server:online");
