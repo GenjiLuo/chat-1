@@ -15,30 +15,22 @@ class Open{
         $token = $query[1];
         $user = UserModel::findOne(['access_token'=>$token]);
         $redis =  App::$DI->redis;
+
         $redis->sAdd(USER_ONLINE,$user["id"]);
         $redis->set("user:".$user["id"].":fd",$frame->fd);
         $redis->set("user:".$frame->fd.":id",$user['id']);
+
         $users = UserModel::findAll();
-        $userKeyId = [];
-        //生成按id索引的数组
+        $online =[];
+        $offline=[];
         foreach ($users as $key=>$val ){
-            echo $val['id'];
-            $userKeyId[$val['id']] = $val;
             if ($redis->sIsMember(USER_ONLINE,$val['id'])){
-                $userKeyId[$val['id']]['online'] = 1;
+                $online[] =$val;
             }else{
-                $userKeyId[$val['id']]['online'] = 0;
+                $offline[] =$val;
             }
         }
-
-        //在线排序在前
-        usort($userKeyId,function($a,$b){
-            if($a['online']==$b['online']) return 0;
-            return $a['online']>$b['online']? -1:1;
-        });
-        //推送人员列表
-        var_dump($userKeyId);
-        $data = ["type"=>"userList","users"=>$userKeyId];
+        $data = ["type"=>"userList","online"=>$online,"offline"=>$offline];
         $server->push($frame->fd,json_encode($data));
         //发送用户上线信息
         foreach ($server->connections as $fd){

@@ -1,7 +1,9 @@
 import axios from 'axios'
 import qs from 'qs'
 
-const base = 'http://localhost/chat'
+const base = 'http://172.16.1.45/chat'
+export const ws = 'ws://172.16.1.80:9501'
+
 axios.interceptors.response.use(
   res => {
     return res

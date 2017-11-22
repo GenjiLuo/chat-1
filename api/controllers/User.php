@@ -36,7 +36,7 @@ class User extends Base {
     public function create(){
         $data = [
             'username'=>App::$DI->request->post('username'),
-            'password'=>App::$DI->request->post('password'),
+            'password'=>md5(App::$DI->request->post('password')),
             'created_at'=>time(),
             'avatar'=>BASE_URL."/static/avatar/default"
         ];

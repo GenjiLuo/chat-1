@@ -6,6 +6,7 @@ use ChatServer;
 use server\classes\operation\Close;
 use server\classes\operation\Login;
 use App;
+use server\classes\operation\Message;
 use server\classes\operation\Open;
 
 /**
@@ -15,48 +16,15 @@ use server\classes\operation\Open;
 class Operation
 {
 
-    const CLIENT_LOGIN = "clientLogin";
-    const MSG_MESSAGE = "message";
-
-
-
+    /**
+     * zjw
+     * @param $server
+     * @param $frame
+     */
     public static function open($server,$frame){
         Open::run($server,$frame);
     }
 
-
-
-    public static function message($server,$frame)
-    {
-        $data = json_decode($frame->data, true);
-        $type = $data['type'];
-        switch ($type) {
-            case self::CLIENT_LOGIN :
-                Login::run($server,$frame);
-                break;
-            case self::MSG_MESSAGE :
-                $fd = $frame->fd;
-                App::$DI->redis->rpush("member:" . $fd . ":message", $data["data"]);
-        }
-    }
-
-    /**
-     * zjw
-     * @param $server
-     * @param null $expect
-     * 发送client端在线人数
-     */
-    public function sendOnline($server,$expect=null){
-        $redis =  ChatServer::$app->redis;
-        $data = [
-            "type"=>"count",
-            "num"=> $redis->scard(CLIENT_ONLINE)
-        ];
-        $servers = $redis->smember(CLIENT_ONLINE);
-        foreach ($servers as $val){
-            $server->push($val,json_encode($data));
-        }
-    }
 
     /**
      * zjw
@@ -67,6 +35,15 @@ class Operation
      */
     public static function close($server,$fd,$reactorId){
         Close::run($server,$fd,$reactorId);
+    }
+
+    /**
+     * zjw
+     * @param $server
+     * @param $frame
+     */
+    public static function message($server,$frame){
+        Message::run($server,$frame);
     }
 
 }

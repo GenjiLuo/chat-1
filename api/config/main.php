@@ -8,7 +8,7 @@ return [
         'class' => 'Medoo\Medoo',
         'database_type' => 'mysql',
         'database_name' => 'test1',
-        'server' => '192.168.1.196',
+        'server' => '172.16.1.80',
         'username' => 'root',
         'password' => '123456',
         'charset' => 'utf8',
