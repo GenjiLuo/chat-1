@@ -10,16 +10,13 @@
                     </div>
                         <div class="friend">
                         <div class="head">
-                            <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="用户名"></el-input>
+                            <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="昵称"></el-input>
                         </div>
                         <div class="list">
-                            <div v-for="friend in online" :key="friend.id" :title="friend.nickname" @click="changeChat(friend)">
-                                <img :src="friend.avatar">
+                            <div v-for="friend in filterFriends" :key="friend.id" :title="friend.nickname" @click="changeChat(friend)" :class="{current: currentChat.id===friend.id }">
+                                <img :src="friend.avatar" :class="{offline:!friend.online}">
                                 <span>{{friend.nickname}}</span>
-                            </div>
-                            <div v-for="friend in offline" :key="friend.id" :title="friend.nickname" @click="changeChat(friend)">
-                                <img :src="friend.avatar" class="offline">
-                                <span>{{friend.nickname}}</span>
+                                <sup class="dot" v-if="friend.getNew===true"></sup>
                             </div>
                         </div>
                     </div>
@@ -32,11 +29,11 @@
                     </div>
                     <div class="content" id="content">
                         <div  v-for="msg in currentChat.msgList ">
-                            <div v-if="msg.owner===false" class="others">
+                            <div v-if="msg.from===currentChat.id" class="others">
                                 <img :src="msg.avatar" />
                                 <span>{{msg.msg}}</span>
                             </div>
-                            <div style="text-align: right"  v-if="msg.owner===true">
+                            <div style="text-align: right"  v-if="msg.from !== currentChat.id">
                                 <span style="background-color: #9dea6a">{{msg.msg}}</span>
                                 <img :src="msg.avatar" />
                             </div>
@@ -72,14 +69,13 @@
         info: {},
         msg: '',
         search: '',
-        online: [],
-        offline: [],
         currentChat: {
-          userId: '',
           nickname: '',
-          avatar: '',
-          msgList: []
+          msgList: [],
+          id: '',
+          avatar: ''
         },
+        friendList: [],
         chats: [],
         editForm: {
           nickname: '',
@@ -96,6 +92,14 @@
       action () {
         let token = localStorage.getItem('token')
         return avatarUrl + '?token=' + token
+      },
+      filterFriends () {
+        if (this.search !== '') {
+          return this.friendList.filter((element) => {
+            return element.nickname.indexOf(this.search) !== -1
+          })
+        }
+        return this.friendList
       }
     },
     methods: {
@@ -114,48 +118,40 @@
         let currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate + ' ' + date.getHours() + seperator2 + date.getMinutes() + seperator2 + date.getSeconds()
         return currentdate
       },
-
       handleSendMsg () {
         if (this.msg === '') {
           this.$message.error('不能发送空消息!')
           return false
         }
-        if (this.currentChat.userId === '') {
-          this.$message.error('请先选择聊天人员')
+        if (this.currentChat.id === '') {
+          this.$message.error('请先选择聊天人员!')
           return false
         }
         let msg = {
-          to: this.currentChat.userId,
+          to: this.currentChat.id,
           from: this.info.id,
           msg: this.msg,
           type: 'msg',
           avatar: this.info.avatar,
-          time: this.getNowFormatDate(),
-          owner: true
+          time: this.getNowFormatDate()
         }
+
         this.currentChat.msgList.push(msg)
         this.socket.send(JSON.stringify(msg))
+        // 将当前用户移到列表最上面
+        for (let [index, {id}] of this.friendList.entries()) {
+          if (parseInt(id) === parseInt(this.currentChat.id)) {
+            let friend = this.friendList.splice(index, 1)[0]
+            this.friendList.unshift(friend)
+            this.$set(this.friendList[index], 'getNew', false)
+            break
+          }
+        }
         this.msg = ''
-        document.getElementById('content').scrollIntoView()
       },
       changeChat (friend) {
-        let flag = true
-        for (let [index, {userId}] of this.chats.entries()) {
-          if (parseInt(userId) === parseInt(friend.id)) {
-            this.currentChat = this.chats[index]
-            flag = false
-          }
-        }
-        if (flag) {
-          let newChat = {
-            userId: friend.id,
-            nickname: friend.nickname,
-            avatar: friend.avatar,
-            msgList: []
-          }
-          this.chats.push(newChat)
-          this.currentChat = newChat
-        }
+        this.currentChat = friend
+        this.$set(friend, 'getNew', false)
       },
       handleShowEdit () {
         this.editForm.nickname = this.info.nickname
@@ -182,53 +178,60 @@
         let data = JSON.parse(ws.data)
         switch (data.type) {
           case 'userList':
-            this.online = data.online
-            this.offline = data.offline
+            this.friendList = data.friend
+            // 根据上下线排序
+            this.friendList.sort(function (a, b) {
+              if (a.online === true && b.online === false) return -1
+              if (a.online === false && b.online === true) return 1
+              return 0
+            })
             break
           case 'goOff':
-            for (let [index, {id}] of this.online.entries()) {
+            let offlineUser
+            // 取出下线的用户
+            for (let [index, { id }] of this.friendList.entries()) {
               if (parseInt(id) === parseInt(data.userId)) {
-                let offlineUser = this.online.splice(index, 1)[0]
-                this.offline.push(offlineUser)
-                this.$message.info(`${offlineUser['nickname']}下线了`)
-                return
+                this.friendList[index].online = false
+                offlineUser = this.friendList.splice(index, 1)[0]
+                break
+              }
+            }
+            // 插入到下线用户队列的最前面
+            for (let [index, { online }] of this.friendList.entries()) {
+              if (online === false) {
+                this.friendList.splice(index, 0, offlineUser)
+                this.$message.info(`${offlineUser.nickname}下线了`)
+                break
               }
             }
             break
           case 'goOnline':
-            for (let [index, {id}] of this.offline.entries()) {
+            let onlineUser
+            // 取出上线用户
+            for (let [index, { id }] of this.friendList.entries()) {
               if (parseInt(id) === parseInt(data.userId)) {
-                let onlineUser = this.offline.splice(index, 1)[0]
-                this.online.push(onlineUser)
-                this.$message.info(`${onlineUser['nickname']}上线了`)
-                return
+                this.friendList[index].online = true
+                onlineUser = this.friendList.splice(index, 1)[0]
+                break
+              }
+            }
+            // 插入到上线用户队列的最后面
+            for (let [index, { online }] of this.friendList.entries()) {
+              if (online === false) {
+                this.friendList.splice(index, 0, onlineUser)
+                this.$message.info(`${onlineUser.nickname}上线了`)
+                break
               }
             }
             break
           case 'msg':
-            let from = data.from
-            let flag = true
-            for (let [index, {userId}] of this.chats.entries()) {
-              if (parseInt(userId) === parseInt(from)) {
-                this.chats[index].msgList.push(data)
-                flag = false
-                return
+            let from = parseInt(data.from)
+            for (let [index, {id}] of this.friendList.entries()) {
+              if (parseInt(id) === from) {
+                this.friendList[index].msgList.push(data)
+                this.$set(this.friendList[index], 'getNew', true)
+                break
               }
-            }
-            if (flag) {
-              let friend = ''
-              for (let [index, {id}] of this.online.entries()) {
-                if (parseInt(id) === parseInt(from)) {
-                  friend = this.online[index]
-                }
-              }
-              let newChat = {
-                userId: friend.id,
-                nickname: friend.nickname,
-                avatar: friend.avatar,
-                msgList: [ data ]
-              }
-              this.chats.push(newChat)
             }
         }
       }
@@ -246,6 +249,8 @@
     $maxHeight : 600px
     $headHeight: 50px
     $imageSize : 40px
+    .item
+        margin: 0px
     .avatar-uploader
         .el-upload
             border: 1px dashed #d9d9d9
@@ -352,6 +357,7 @@
                     height: $imageSize
                     cursor: pointer
                     border-radius: 5px
+
         .friend
             background-color: #e7e6e6
             width: 190px
@@ -365,9 +371,26 @@
                     margin: 10px 7px
                     width: 80%
             .list
+                .dot
+                    position: absolute
+                    top: 0px
+                    left: 55px
+                    background-color: #fa5555
+                    border-radius: 10px
+                    color: #fff
+                    display: inline-block
+                    font-size: 12px
+                    height: 8px
+                    width: 8px
+                    text-align: center
+                    white-space: nowrap
+                    border: 1px solid #fff
+                .current
+                    background-color: #c6c5c5
                 overflow: auto
                 height: 530px
                 div
+                    position: relative
                     padding: 5px 8px
                     height: 40px
                     line-height: 40px
@@ -378,6 +401,7 @@
                         width: $imageSize
                         height: $imageSize
                         border-radius: 5px
+                        vertical-align: top
                     span
                         display: inline-block
                         vertical-align: top
