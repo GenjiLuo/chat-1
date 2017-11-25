@@ -9,26 +9,28 @@ Vue.use(Router)
 
 const notLoginJump = (to, form, next) => {
   let token = localStorage.getItem('token')
-  loginByToken({token: token}).then(res => {
-    if (parseInt(res.status) === 1) {
-      localStorage.setItem('user', JSON.stringify(res.user))
-      next()
-    } else {
-      next('/')
-    }
-  })
+  if(token){
+    loginByToken({token: token}).then(res => {
+      if (parseInt(res.status) === 1) {
+        localStorage.setItem('user', JSON.stringify(res.user))
+        next()
+      }
+    })
+  }
+  next('/')
 }
 
 const loginJump = (to, form, next) => {
   let token = localStorage.getItem('token')
-  loginByToken({token: token}).then(res => {
-    if (parseInt(res.status) === 1) {
-      localStorage.setItem('user', JSON.stringify(res.user))
-      next('/chat')
-    } else {
-      next()
-    }
-  })
+  if(token){
+    loginByToken({token: token}).then(res => {
+      if (parseInt(res.status) === 1) {
+        localStorage.setItem('user', JSON.stringify(res.user))
+        next('/chat')
+      }
+    })
+  }
+  next()
 }
 
 const router = new Router({
