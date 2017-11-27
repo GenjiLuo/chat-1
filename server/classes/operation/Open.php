@@ -54,7 +54,7 @@ class Open
         //发送用户上线信息
         foreach ($server->connections as $fd) {
             if ($fd == $frame->fd) continue; //排除掉自己
-            $server->push($fd, json_encode(["type" => "goOnline", "userId" => $user['id']]));
+            $server->push($fd, json_encode(["type" => "goOnline", "user" => $user]));
         }
     }
 }

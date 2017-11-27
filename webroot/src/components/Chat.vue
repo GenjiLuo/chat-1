@@ -171,6 +171,11 @@
         }
         return isJPG && isLt2M
       },
+
+      openConnect () {
+        this.socket = new WebSocket(`${ws}?token=${token}`)
+      },
+
       onConnect (ws) {
         console.log('connect')
       },
@@ -208,18 +213,24 @@
           case 'goOnline':
             let onlineUser
             // 取出上线用户
+            let flag = false;
             for (let [index, { id }] of this.friendList.entries()) {
-              if (parseInt(id) === parseInt(data.userId)) {
+              if (parseInt(id) === parseInt(data.user.id)) {
                 this.friendList[index].online = true
                 onlineUser = this.friendList.splice(index, 1)[0]
+                flag = true;
                 break
               }
             }
             // 插入到上线用户队列的最后面
             for (let [index, { online }] of this.friendList.entries()) {
               if (online === false) {
-                this.friendList.splice(index, 0, onlineUser)
-                this.$message.info(`${onlineUser.nickname}上线了`)
+                if (flag) {
+                  this.friendList.splice(index, 0, onlineUser)
+                  this.$message.info(`${onlineUser.nickname}上线了`)
+                }else{
+                  this.friendList.splice(index, 0, data)
+                }
                 break
               }
             }
@@ -235,10 +246,12 @@
             }
         }
       }
+
+
     },
     mounted () {
       let token = localStorage.getItem('token')
-      this.socket = new WebSocket(`${ws}?token=${token}`)
+      this.openConnect()
       this.socket.onopen = this.onConnect
       this.socket.onmessage = this.onMessage
       this.info = JSON.parse(localStorage.getItem('user'))
