@@ -3,12 +3,15 @@
         <div>
             <div >
                 <div class="friend-box">
-                        <div class="info">
+                    <div class="info">
                         <div class="avatar" @click="handleShowEdit">
                             <img :src="info.avatar" title="修改个人信息"/>
                         </div>
+                        <div>
+                            <a @click.prevent="showAddFriend" href="#" title="新增好友"><i class="el-icon-plus" title="新增好友"></i></a>
+                        </div>
                     </div>
-                        <div class="friend">
+                    <div class="friend">
                         <div class="head">
                             <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="昵称"></el-input>
                         </div>
@@ -48,7 +51,7 @@
                 </div>
             </div>
         </div>
-        <el-dialog title="修改头像" :visible.sync="editVisible" width="218px" class="dialog">
+        <el-dialog title="修改头像" :visible.sync="visible.edit" width="218px" class="dialog">
             <el-upload class="avatar-uploader"
                     :action="action"
                     :show-file-list="false"
@@ -58,22 +61,38 @@
                 <i  class="el-icon-plus avatar-uploader-icon" v-else></i>
             </el-upload>
         </el-dialog>
+        <el-dialog  :visible.sync="visible.addFriend" width="300px" :show-close="false" class="add-friend">
+            <span slot="title">
+                 <el-input size="small" v-model="searchFriend"  prefix-icon="el-icon-search" placeholder="昵称"></el-input>
+            </span>
+            <div>
+                <div>
+
+                </div>
+            </div>
+        </el-dialog >
     </div>
+
+
 </template>
 <script>
   import {avatarUrl, ws} from '../api/api'
   export default {
     data () {
       return {
-        editVisible: false,
         info: {},
         msg: '',
         search: '',
+        searchFriend: '',
         currentChat: {
           nickname: '',
           msgList: [],
           id: '',
           avatar: ''
+        },
+        visible: {
+          edit: false,
+          addFriend: false
         },
         friendList: [],
         chats: [],
@@ -103,6 +122,11 @@
       }
     },
     methods: {
+      // 显示新增朋友页面
+      showAddFriend () {
+        this.visible.addFriend = true
+      },
+
       getNowFormatDate () {
         let date = new Date()
         let seperator1 = '-'
@@ -115,8 +139,7 @@
         if (strDate >= 0 && strDate <= 9) {
           strDate = '0' + strDate
         }
-        let currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate + ' ' + date.getHours() + seperator2 + date.getMinutes() + seperator2 + date.getSeconds()
-        return currentdate
+        return date.getFullYear() + seperator1 + month + seperator1 + strDate + ' ' + date.getHours() + seperator2 + date.getMinutes() + seperator2 + date.getSeconds()
       },
       handleSendMsg () {
         if (this.msg === '') {
@@ -135,7 +158,6 @@
           avatar: this.info.avatar,
           time: this.getNowFormatDate()
         }
-
         this.currentChat.msgList.push(msg)
         this.socket.send(JSON.stringify(msg))
         // 将当前用户移到列表最上面
@@ -155,7 +177,7 @@
       },
       handleShowEdit () {
         this.editForm.nickname = this.info.nickname
-        this.editVisible = true
+        this.visible.edit = true
       },
       handleAvatarSuccess (res, file) {
         this.info.avatar = res.avatar
@@ -172,10 +194,13 @@
         return isJPG && isLt2M
       },
 
+      handleUserList () {
+
+      },
       openConnect () {
+        let token = localStorage.getItem('token')
         this.socket = new WebSocket(`${ws}?token=${token}`)
       },
-
       onConnect (ws) {
         console.log('connect')
       },
@@ -213,12 +238,12 @@
           case 'goOnline':
             let onlineUser
             // 取出上线用户
-            let flag = false;
+            let flag = false
             for (let [index, { id }] of this.friendList.entries()) {
               if (parseInt(id) === parseInt(data.user.id)) {
                 this.friendList[index].online = true
                 onlineUser = this.friendList.splice(index, 1)[0]
-                flag = true;
+                flag = true
                 break
               }
             }
@@ -228,7 +253,7 @@
                 if (flag) {
                   this.friendList.splice(index, 0, onlineUser)
                   this.$message.info(`${onlineUser.nickname}上线了`)
-                }else{
+                } else {
                   this.friendList.splice(index, 0, data)
                 }
                 break
@@ -247,10 +272,8 @@
         }
       }
 
-
     },
     mounted () {
-      let token = localStorage.getItem('token')
       this.openConnect()
       this.socket.onopen = this.onConnect
       this.socket.onmessage = this.onMessage
@@ -363,9 +386,14 @@
             border-right: 1px solid #D8DCE5
             display: inline-block
             float: left
+            div
+                height: 58px
+                line-height: 58px
+                font-size: 20px
             .avatar
-                padding: 10px
+                height: 58px
                 img
+                    margin: 10px
                     width: $imageSize
                     height: $imageSize
                     cursor: pointer
@@ -425,4 +453,6 @@
                         background-color: #c6c6c6
                     .offline
                         filter: grayscale(100%)
+    .add-friend
+        height: 500px
 </style>
