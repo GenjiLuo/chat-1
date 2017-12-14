@@ -63,11 +63,13 @@
         </el-dialog>
         <el-dialog  :visible.sync="visible.addFriend" width="300px" :show-close="false" class="add-friend">
             <span slot="title">
-                 <el-input size="small" v-model="searchFriend"  prefix-icon="el-icon-search" placeholder="昵称"></el-input>
+                 <el-input size="small" @blur="handleGetUserList" v-model="userSearch"  prefix-icon="el-icon-search" placeholder="昵称"></el-input>
             </span>
-            <div>
-                <div>
-
+            <div class="user-content">
+                <div v-for="user in userList" >
+                    <img :src="user.avatar">
+                    <span>{{user.nickname}}</span>
+                    <el-button size="small" icon="el-icon-plus" ></el-button>
                 </div>
             </div>
         </el-dialog >
@@ -83,7 +85,6 @@
         info: {},
         msg: '',
         search: '',
-        searchFriend: '',
         currentChat: {
           nickname: '',
           msgList: [],
@@ -100,7 +101,9 @@
           nickname: '',
           avatar: ''
         },
-        socket: ''
+        socket: '',
+        userSearch: '',
+        userList:''
       }
     },
     updated () {
@@ -112,6 +115,7 @@
         let token = localStorage.getItem('token')
         return avatarUrl + '?token=' + token
       },
+      // 朋友搜索
       filterFriends () {
         if (this.search !== '') {
           return this.friendList.filter((element) => {
@@ -125,8 +129,9 @@
       // 显示新增朋友页面
       showAddFriend () {
         this.visible.addFriend = true
+        this.handleGetUserList()
       },
-
+      // 日期格式化
       getNowFormatDate () {
         let date = new Date()
         let seperator1 = '-'
@@ -141,6 +146,15 @@
         }
         return date.getFullYear() + seperator1 + month + seperator1 + strDate + ' ' + date.getHours() + seperator2 + date.getMinutes() + seperator2 + date.getSeconds()
       },
+      // 获取用户列表
+      handleGetUserList () {
+        let msg={
+          type: 'userList',
+          search: this.userSearch,
+        }
+        this.socket.send(JSON.stringify(msg))
+      },
+      // 发送消息
       handleSendMsg () {
         if (this.msg === '') {
           this.$message.error('不能发送空消息!')
@@ -171,17 +185,22 @@
         }
         this.msg = ''
       },
+      // 切换聊天对象
       changeChat (friend) {
         this.currentChat = friend
         this.$set(friend, 'getNew', false)
       },
+      // 显示编辑页面
       handleShowEdit () {
         this.editForm.nickname = this.info.nickname
         this.visible.edit = true
       },
+      // 头像上传成功事件
       handleAvatarSuccess (res, file) {
         this.info.avatar = res.avatar
       },
+
+      // 头像上传验证
       beforeAvatarUpload (file) {
         const isJPG = file.type === 'image/jpeg'
         const isLt2M = file.size / 1024 / 1024 < 2
@@ -194,20 +213,77 @@
         return isJPG && isLt2M
       },
 
-      handleUserList () {
-
-      },
+      // 开启ws链接
       openConnect () {
         let token = localStorage.getItem('token')
         this.socket = new WebSocket(`${ws}?token=${token}`)
       },
+      // 链接成功事件
       onConnect (ws) {
         console.log('connect')
       },
+      // 下线处理函数
+      handleGoOff(data){
+        let offlineUser
+        // 取出下线的用户
+        for (let [index, { id }] of this.friendList.entries()) {
+          if (parseInt(id) === parseInt(data.userId)) {
+            this.friendList[index].online = false
+            offlineUser = this.friendList.splice(index, 1)[0]
+            break
+          }
+        }
+        // 插入到下线用户队列的最前面
+        for (let [index, { online }] of this.friendList.entries()) {
+          if (online === false) {
+            this.friendList.splice(index, 0, offlineUser)
+            this.$message.info(`${offlineUser.nickname}下线了`)
+            break
+          }
+        }
+      },
+      // 上线处理函数
+      handleGoOnline (data) {
+        let onlineUser
+        // 取出上线用户
+        let flag = false
+        for (let [index, { id }] of this.friendList.entries()) {
+          if (parseInt(id) === parseInt(data.user.id)) {
+            this.friendList[index].online = true
+            onlineUser = this.friendList.splice(index, 1)[0]
+            flag = true
+            break
+          }
+        }
+        // 插入到上线用户队列的最后面
+        for (let [index, { online }] of this.friendList.entries()) {
+          if (online === false) {
+            if (flag) {
+              this.friendList.splice(index, 0, onlineUser)
+              this.$message.info(`${onlineUser.nickname}上线了`)
+            } else {
+              this.friendList.splice(index, 0, data)
+            }
+            break
+          }
+        }
+      },
+      // 聊天消息接受处理函数
+      handleMsg (data) {
+        let from = parseInt(data.from)
+        for (let [index, {id}] of this.friendList.entries()) {
+          if (parseInt(id) === from) {
+            this.friendList[index].msgList.push(data)
+            this.$set(this.friendList[index], 'getNew', true)
+            break
+          }
+        }
+      },
+      // 接受消息事件
       onMessage (ws) {
         let data = JSON.parse(ws.data)
         switch (data.type) {
-          case 'userList':
+          case 'friendList':
             this.friendList = data.friend
             // 根据上下线排序
             this.friendList.sort(function (a, b) {
@@ -217,58 +293,16 @@
             })
             break
           case 'goOff':
-            let offlineUser
-            // 取出下线的用户
-            for (let [index, { id }] of this.friendList.entries()) {
-              if (parseInt(id) === parseInt(data.userId)) {
-                this.friendList[index].online = false
-                offlineUser = this.friendList.splice(index, 1)[0]
-                break
-              }
-            }
-            // 插入到下线用户队列的最前面
-            for (let [index, { online }] of this.friendList.entries()) {
-              if (online === false) {
-                this.friendList.splice(index, 0, offlineUser)
-                this.$message.info(`${offlineUser.nickname}下线了`)
-                break
-              }
-            }
+            this.handleGoOff(data)
             break
           case 'goOnline':
-            let onlineUser
-            // 取出上线用户
-            let flag = false
-            for (let [index, { id }] of this.friendList.entries()) {
-              if (parseInt(id) === parseInt(data.user.id)) {
-                this.friendList[index].online = true
-                onlineUser = this.friendList.splice(index, 1)[0]
-                flag = true
-                break
-              }
-            }
-            // 插入到上线用户队列的最后面
-            for (let [index, { online }] of this.friendList.entries()) {
-              if (online === false) {
-                if (flag) {
-                  this.friendList.splice(index, 0, onlineUser)
-                  this.$message.info(`${onlineUser.nickname}上线了`)
-                } else {
-                  this.friendList.splice(index, 0, data)
-                }
-                break
-              }
-            }
+            this.handleGoOnline(data)
             break
           case 'msg':
-            let from = parseInt(data.from)
-            for (let [index, {id}] of this.friendList.entries()) {
-              if (parseInt(id) === from) {
-                this.friendList[index].msgList.push(data)
-                this.$set(this.friendList[index], 'getNew', true)
-                break
-              }
-            }
+            this.handleMsg(data)
+            break
+          case 'userList':
+            this.userList = data.users;
         }
       }
 
@@ -383,7 +417,6 @@
         .info
             width: 58px
             height: 100%
-            border-right: 1px solid #D8DCE5
             display: inline-block
             float: left
             div
@@ -453,6 +486,28 @@
                         background-color: #c6c6c6
                     .offline
                         filter: grayscale(100%)
-    .add-friend
+
+    .user-content
+        margin-top: -30px
         height: 500px
+        overflow: auto
+        div
+            padding: 5px
+            height: 40px
+            vertical-align: top
+            text-align: left
+            img
+                width: $imageSize
+                height: $imageSize
+            span
+                display: inline-block
+                line-height: 40px
+                font-size: 20px
+                vertical-align: top
+                padding-left: 10px
+            button
+                vertical-align: top
+                float: right
+                margin-top: 3px
+
 </style>

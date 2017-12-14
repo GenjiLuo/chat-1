@@ -49,7 +49,7 @@ class Open
             $friend[] = $val;
         }
 
-        $data = ["type" => "userList", "friend" => $friend];
+        $data = ["type" => "friendList", "friend" => $friend];
         $server->push($frame->fd, json_encode($data));
         //发送用户上线信息
         foreach ($server->connections as $fd) {
