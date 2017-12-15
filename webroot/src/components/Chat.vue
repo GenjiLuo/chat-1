@@ -103,7 +103,8 @@
         },
         socket: '',
         userSearch: '',
-        userList:''
+        userList: '',
+        isConnect: false
       }
     },
     updated () {
@@ -217,13 +218,21 @@
       openConnect () {
         let token = localStorage.getItem('token')
         this.socket = new WebSocket(`${ws}?token=${token}`)
+        this.socket.onopen = this.onConnect
+        this.socket.onmessage = this.onMessage
+
       },
       // 链接成功事件
       onConnect (ws) {
-        console.log('connect')
+        this.isConnect = true
+
+      },
+      //
+      onClose () {
+        this.isConnect = false
       },
       // 下线处理函数
-      handleGoOff(data){
+      handleGoOff (data) {
         let offlineUser
         // 取出下线的用户
         for (let [index, { id }] of this.friendList.entries()) {
@@ -309,8 +318,6 @@
     },
     mounted () {
       this.openConnect()
-      this.socket.onopen = this.onConnect
-      this.socket.onmessage = this.onMessage
       this.info = JSON.parse(localStorage.getItem('user'))
     }
   }
