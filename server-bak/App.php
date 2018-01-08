@@ -5,18 +5,13 @@
  */
 class App{
 
-
     public  static  $DI;
-
 
     public static function run($DI){
         spl_autoload_register([get_called_class(),"autoLoad"]);
         self::$DI = $DI;
         ChatServer::init();
     }
-
-
-
 
     /**
      * zjw
