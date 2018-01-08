@@ -35,10 +35,10 @@
 
 ### opencart商城
 基于opencart商城二次开发，我在项目中功能上主要负责微信公众号服务器端开发，微信分享，支付等功能实现，系统架构上加入了composer包管理，模型层加入
-ORM，数据表引擎改成innodb,重要的逻辑处理上加入事务机制
+ORM，数据表引擎改成innodb，重要的逻辑处理上加入事务机制
 
 ### 前后端分离新商城 
-基于vue全家桶+lnmp+restful的前后端分离商城项目，用到的技术栈主要有: lnmp,redis,vue全家桶,es6,elementUI,restful,yii2
+基于vue全家桶+lnmp+restful的前后端分离商城项目，用到的技术栈主要有: lnmp,redis,vue全家桶,es6,elementUI,restful,yii2  
 我在项目中主要负责项目架构设计:客户端渲染下的登录状态维持、跨域请求、restful api 接口规范等，数据库设计，代码review，包管理，前后端功能实现，阿里云centos服务器管理
 
 
