@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "catfan/medoo",
-            "version": "v1.4.5",
+            "version": "v1.5.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/catfan/Medoo.git",
-                "reference": "8ee8ae1c4df0fee3822a01333eab88893e548fcc"
+                "reference": "a6b7b05b18fa7c8f955e259d491344b1db9a51bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://files.phpcomposer.com/files/catfan/Medoo/8ee8ae1c4df0fee3822a01333eab88893e548fcc.zip",
-                "reference": "8ee8ae1c4df0fee3822a01333eab88893e548fcc",
+                "url": "https://api.github.com/repos/catfan/Medoo/zipball/a6b7b05b18fa7c8f955e259d491344b1db9a51bf",
+                "reference": "a6b7b05b18fa7c8f955e259d491344b1db9a51bf",
                 "shasum": ""
             },
             "require": {
@@ -31,7 +31,7 @@
                 "ext-pdo_oci8": "For Oracle version 8 database",
                 "ext-pdo_pqsql": "For PostgreSQL database",
                 "ext-pdo_sqlite": "For SQLite database",
-                "ext-pdo_sqlsrv": "For MSSQL database on Windows platform"
+                "ext-pdo_sqlsrv": "For MSSQL database"
             },
             "type": "framework",
             "autoload": {
@@ -63,7 +63,7 @@
                 "sql",
                 "sqlite"
             ],
-            "time": "2017-06-24T14:43:07+00:00"
+            "time": "2018-01-08T20:01:12+00:00"
         }
     ],
     "packages-dev": [
@@ -73,12 +73,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/eaglewu/swoole-ide-helper.git",
-                "reference": "79f1a0b466d62f05ce5a4a4d6cbac5c82d23c520"
+                "reference": "2f9177b4694b90b64a244e09daadf89e5bf88ad0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://files.phpcomposer.com/files/eaglewu/swoole-ide-helper/79f1a0b466d62f05ce5a4a4d6cbac5c82d23c520.zip",
-                "reference": "79f1a0b466d62f05ce5a4a4d6cbac5c82d23c520",
+                "url": "https://api.github.com/repos/eaglewu/swoole-ide-helper/zipball/2f9177b4694b90b64a244e09daadf89e5bf88ad0",
+                "reference": "2f9177b4694b90b64a244e09daadf89e5bf88ad0",
                 "shasum": ""
             },
             "type": "library",
@@ -95,7 +95,7 @@
                 }
             ],
             "description": "Swoole 在IDE下自动识别类、函数、宏，自动补全函数名",
-            "time": "2017-10-23T15:55:32+00:00"
+            "time": "2018-02-05T05:06:02+00:00"
         }
     ],
     "aliases": [],

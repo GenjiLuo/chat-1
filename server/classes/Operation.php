@@ -2,7 +2,7 @@
 
 namespace server\classes;
 
-use ChatServer;
+use WsServer;
 use server\classes\operation\Close;
 use server\classes\operation\Login;
 use App;

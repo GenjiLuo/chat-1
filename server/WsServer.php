@@ -1,22 +1,24 @@
 <?php
+namespace server;
 use Swoole\WebSocket\Server;
 use server\classes\Operation;
 /**
  * zjw
  * 2017/11/6
  */
-class ChatServer{
+class WsServer{
 
     public static $server;
-
 
     public static function init(){
 
         self::$server= new Server(SERVER_HOST,SERVER_PORT);
 
         self::$server->on("open",function(Server $server,$frame){
-            Operation::open($server,$frame);
+            echo "connect";
         });
+//            Operation::open($server,$frame);
+//        });
 
         self::$server->on("message",function(Server $server,$frame){
            Operation::message($server,$frame);
