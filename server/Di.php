@@ -1,4 +1,5 @@
 <?php
+namespace server;
 /**
  * zjw
  * Date: 2017/11/16

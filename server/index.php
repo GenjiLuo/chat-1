@@ -1,5 +1,9 @@
 <?php
-define("BASE_ROOT",dirname(__DIR__));
-require_once './App.php';
-$config = require('config/config.php');
-$app = new App($config);
+require_once "./App.php";
+
+require_once "../vendor/autoload.php";
+require_once "../config/config.php";
+require_once "./config/key.php";
+
+App::run($DI);
+

@@ -1,27 +1,23 @@
 <?php
-use server\lib\Container;
-
+use server\Di;
+/**
+ * zjw
+ * 2017/11/6
+ */
 class App{
 
-    public $config;
+    public static  $DI;
 
-    public function __construct($config)
-    {
-        $this->config = $config;
-        $this ->init();
-        $this->run();
-    }
-
-    public function run(){
-        Server::$container = new Container($this->config['component']);
-    }
-
-    public function init(){
+    public static function run($server,$main){
         spl_autoload_register([get_called_class(),"autoLoad"]);
-        require_once '../vendor/autoload.php';
-        require_once "lib/Server.php";
+        self::$DI = new Di($main);
+        $server::run();
     }
 
+    /**
+     * zjw
+     * @param $className
+     */
     public static function autoLoad($className){
         $fileName = BASE_ROOT."/".str_replace("\\","/",$className.".php");
         if(is_file($fileName)){

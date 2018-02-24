@@ -74,8 +74,6 @@
             </div>
         </el-dialog >
     </div>
-
-
 </template>
 <script>
   import {avatarUrl, ws} from '../api/api'
@@ -149,9 +147,9 @@
       },
       // 获取用户列表
       handleGetUserList () {
-        let msg={
+        let msg = {
           type: 'userList',
-          search: this.userSearch,
+          search: this.userSearch
         }
         this.socket.send(JSON.stringify(msg))
       },
@@ -213,19 +211,16 @@
         }
         return isJPG && isLt2M
       },
-
       // 开启ws链接
       openConnect () {
         let token = localStorage.getItem('token')
         this.socket = new WebSocket(`${ws}?token=${token}`)
         this.socket.onopen = this.onConnect
         this.socket.onmessage = this.onMessage
-
       },
       // 链接成功事件
       onConnect (ws) {
         this.isConnect = true
-
       },
       //
       onClose () {
@@ -311,10 +306,9 @@
             this.handleMsg(data)
             break
           case 'userList':
-            this.userList = data.users;
+            this.userList = data.users
         }
       }
-
     },
     mounted () {
       this.openConnect()
