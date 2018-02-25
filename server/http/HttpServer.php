@@ -1,31 +1,23 @@
 <?php
+
 namespace server\http;
-use server\http\controller\Controller;
+
+use Swoole\Http\Request;
+use Swoole\Http\Response;
 use Swoole\Http\Server;
 use App;
-class HttpServer{
 
-    public static function  run(){
-        $server =  new Server('127.0.0.1',8081);
-        $server->on('request',function($request,$response){
-            $response->end(self::dispatch($request));
+class HttpServer
+{
+    public static function run()
+    {
+        $server = new Server('127.0.0.1', HTTP_SERVER_PORT);
+        $config = require BASE_ROOT . "/server/http/config/server.php";
+        $server->set($config);
+        $server->on('request', function (Request $request, Response $response) {
+            App::$DI->router->dispatch($request, $response);
         });
+        App::notice("HttpServer now is running on 127.0.0.1:" . HTTP_SERVER_PORT);
         $server->start();
     }
-
-    public static function dispatch($request){
-        $path = $request->server['request_uri'];
-        $callBack = App::$DI->router->get($path);
-        if(is_callable($callBack)){
-            return call_user_func($callBack,$request);
-        }
-        if($callBack instanceof Controller){
-            return $callBack->run($request);
-        }
-        if(is_string($callBack)){
-            return (new $callBack)->run($request);
-        }
-    }
-
-
 }
