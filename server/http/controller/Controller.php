@@ -1,35 +1,78 @@
 <?php
+
 namespace server\http\controller;
 
-abstract class Controller{
-    public function run($request){
-        switch ($request->server['request_method']){
-            case "GET":
-                return $this->view($request);
-                break;
-            case 'POST':
-                return $this->add($request);
-                break;
-            case 'PUT':
-                return $this->update($request);
-                break;
-            case 'DELETE':
-                return $this->delete($request);
-                break;
-            case 'OPTION':
-                return $this->option($request);
+use Swoole\Http\Request;
+use Swoole\Http\Response;
+use common\lib\CResponse;
+abstract class Controller
+{
+
+    protected $request;
+
+    protected $response;
+
+    protected $responseType;
+
+    protected $responseContent;
+
+    public function __construct(Request $request, Response $response)
+    {
+        $this->responseType = CResponse::HTML;
+        $this->request = $request;
+        $this->response = $response;
+    }
+
+    public function run()
+    {
+        if($this->beforeAction()){
+            switch ($this->request->server['request_method']) {
+                case "GET":
+                    $this->responseContent =  $this->view();
+                    break;
+                case 'POST':
+                    $this->responseContent =  $this->add();
+                    break;
+                case 'PUT':
+                    $this->responseContent = $this->update();
+                    break;
+                case 'DELETE':
+                    $this->responseContent = $this->delete();
+                    break;
+                case 'OPTION':
+                    $this->responseContent = $this->option();
+            }
+            $this->formatter();
+            $this->afterAction();
+            return $this->responseContent;
         }
     }
 
-    public function option($request){
+    public function option()
+    {
         return "";
     }
 
-    abstract  function view($request);
+    abstract function view();
 
-    abstract function update($request);
+    abstract function update();
 
-    abstract function add($request);
+    abstract function add();
 
-    abstract function delete($request);
+    abstract function delete();
+
+    public function formatter(){
+        $this->response->header("Content-Type",$this->responseType.";charset=UTF-8");
+        if($this->responseType === CResponse::JSON ){
+           $this->responseContent = json_encode($this->responseContent);
+        }
+    }
+
+    public function afterAction(){
+        //do something here
+    }
+
+    public function beforeAction() : bool {
+        return true;
+    }
 }

@@ -24,4 +24,8 @@ class App{
             require_once $fileName;
         }
     }
+
+    public static function notice(string $str){
+        self::$DI->log->notice($str);
+    }
 }

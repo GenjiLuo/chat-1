@@ -1,24 +1,27 @@
 <?php
 namespace server\http\controller;
 
+use common\lib\CResponse;
+
 class TestController extends Controller{
 
-    public function view($request)
+    public function view()
     {
-        return "haha";
+        $this->responseType = CResponse::JSON;
+        return [1,2,3,4,5,6];
     }
 
-    function update($request)
+    function update()
     {
         // TODO: Implement update() method.
     }
 
-    function add($request)
+    function add()
     {
         // TODO: Implement add() method.
     }
 
-    function delete($request)
+    function delete()
     {
         // TODO: Implement delete() method.
     }

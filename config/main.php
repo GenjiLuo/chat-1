@@ -16,4 +16,7 @@ return [
         "host" => "172.16.1.80",
         "port" => "6379"
     ],
+    "log" => [
+        "class"=>"common\lib\Log"
+    ]
 ];
