@@ -1,5 +1,6 @@
 <?php
 use server\Di;
+use common\interfaces\ServerInterface;
 /**
  * zjw
  * 2017/11/6
@@ -8,10 +9,10 @@ class App{
 
     public static  $DI;
 
-    public static function run($server,$main){
-        spl_autoload_register([get_called_class(),"autoLoad"]);
+    public static function run(ServerInterface $server,array $main){
+        require_once BASE_ROOT."/vendor/autoload.php";
         self::$DI = new Di($main);
-        $server::run();
+        $server->run();
     }
 
     /**
@@ -19,7 +20,7 @@ class App{
      * @param $className
      */
     public static function autoLoad($className){
-        $fileName = BASE_ROOT."/".str_replace("\\","/",$className.".php");
+        $fileName = BASE_ROOT.'/'.str_replace('\\','/',$className.'.php');
         if(is_file($fileName)){
             require_once $fileName;
         }

@@ -7,15 +7,28 @@ use Swoole\Http\Response;
 use common\lib\CResponse;
 abstract class Controller
 {
-
+    /**
+     * @var Request
+     */
     protected $request;
-
+    /**
+     * @var Response
+     */
     protected $response;
-
+    /**
+     * @var string
+     */
     protected $responseType;
-
+    /**
+     * @var string
+     */
     protected $responseContent;
 
+    /**
+     * Controller constructor.
+     * @param Request $request
+     * @param Response $response
+     */
     public function __construct(Request $request, Response $response)
     {
         $this->responseType = CResponse::HTML;
@@ -23,6 +36,9 @@ abstract class Controller
         $this->response = $response;
     }
 
+    /**
+     * @return string
+     */
     public function run()
     {
         if($this->beforeAction()){
@@ -53,14 +69,33 @@ abstract class Controller
         return "";
     }
 
+    /**
+     * @return mixed
+     * get method
+     */
     abstract function view();
 
+    /**
+     * @return mixed
+     * put method
+     */
     abstract function update();
 
+    /**
+     * @return mixed
+     * post method
+     */
     abstract function add();
 
+    /**
+     * @return mixed
+     * delete method
+     */
     abstract function delete();
 
+    /**
+     * content formatter
+     */
     public function formatter(){
         $this->response->header("Content-Type",$this->responseType.";charset=UTF-8");
         if($this->responseType === CResponse::JSON ){
@@ -68,10 +103,18 @@ abstract class Controller
         }
     }
 
+    /**
+     * afterAction
+     */
     public function afterAction(){
         //do something here
     }
 
+    /**
+     * @return bool
+     * beforeAction
+     * if return false,the action will not be executed
+     */
     public function beforeAction() : bool {
         return true;
     }
