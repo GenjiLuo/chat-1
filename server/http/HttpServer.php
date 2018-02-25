@@ -5,11 +5,12 @@ namespace server\http;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Http\Server;
+use common\interfaces\ServerInterface;
 use App;
 
-class HttpServer
+class HttpServer implements ServerInterface
 {
-    public static function run()
+    public function run()
     {
         $server = new Server('127.0.0.1', HTTP_SERVER_PORT);
         $config = require BASE_ROOT . "/server/http/config/server.php";
