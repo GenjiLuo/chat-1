@@ -18,7 +18,7 @@ abstract class Controller
     /**
      * @var string
      */
-    protected $responseType;
+    protected $responseType  = CResponse::HTML;
     /**
      * @var string
      */
@@ -31,7 +31,6 @@ abstract class Controller
      */
     public function __construct(Request $request, Response $response)
     {
-        $this->responseType = CResponse::HTML;
         $this->request = $request;
         $this->response = $response;
     }
@@ -66,7 +65,7 @@ abstract class Controller
 
     public function option()
     {
-        return "";
+        $this->response->header("Access-Control-Allow-Origin","*");
     }
 
     /**

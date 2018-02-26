@@ -1,12 +1,20 @@
 <template>
     <div class="login_start">
         <el-form :model="registerForm" :rules="registerFormRule" ref="registerForm" label-position="left"
-                 label-width="0px"
                  class="login-container">
             <h2 class="title">注册账号</h2>
             <el-form-item prop="username">
                 <el-input type="text" v-model="registerForm.username" auto-complete="off"
-                          placeholder="账号/昵称"></el-input>
+                          placeholder="账号"></el-input>
+            </el-form-item>
+            <el-form-item prop="sex">
+                <el-select v-model="registerForm.sex" placeholder="性别">
+                    <el-option label="男" value="1"></el-option>
+                    <el-option label="女" value="0"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item prop="age">
+                <el-input-number v-model="registerForm.age"  :min="1" :max="120" label="年龄"></el-input-number>
             </el-form-item>
             <el-form-item prop="password">
                 <el-input type="password" v-model="registerForm.password" auto-complete="off" placeholder="密码"
@@ -34,7 +42,7 @@
 
 </template>
 <script>
-  import {register, checkUsername} from '../api/api.js'
+  import {register} from '../api/api.js'
 
   export default {
     data () {
@@ -57,27 +65,20 @@
           callback()
         }
       }
-      const validateUsername = (rule, value, callback) => {
-        if (value === '') {
-          callback(new Error('请输出用户名'))
-        }
-        checkUsername({username: value}).then(res => {
-          if (parseInt(res.status) !== 1) {
-            callback(new Error('该用户名已注册'))
-          } else {
-            callback()
-          }
-        })
-      }
       return {
         registerForm: {
           username: '',
           password: '',
-          checkPwd: ''
+          checkPwd: '',
+          age: 18,
+          sex: ''
         },
         registerFormRule: {
           username: [
-            {validator: validateUsername, trigger: 'blur'}
+            {required: true, trigger: 'blur', message: '请输入账号'}
+          ],
+          sex: [
+            {required: true, trigger: 'blur', message: '请选择性别'}
           ],
           password: [
             {validator: validatePass, trigger: 'blur'}
@@ -132,7 +133,7 @@
         border: 1px solid #eaeaea;
         box-shadow: 0 0 25px #cac6c6;
         position: relative;
-        top: 180px;
+        top: 100px;
         margin: auto;
         .title {
             margin: 0px auto 40px auto;

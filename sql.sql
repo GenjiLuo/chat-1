@@ -20,11 +20,11 @@ CREATE TABLE `message` (
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(20) CHARACTER SET utf8 DEFAULT NULL,
-  `password` varchar(50) CHARACTER SET utf8 DEFAULT NULL,
-  `avatar` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
-  `created_at` int(11) DEFAULT NULL,
-  `nickname` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `username` varchar(20)  NOT NULL ,
+  `password` varchar(50)  NOT NULL ,
+  `ser` tinyint DEFAULT 0 NOT NULL ,
+  `age` SMALLINT DEFAULT 0 NOT NULL ,
+  `created_at` int(11) NOT NULL,
   `access_token` varchar(100) DEFAULT NULL,
   `access_ip` varchar(50) DEFAULT NULL,
   `token_expired` int(11) DEFAULT NULL,

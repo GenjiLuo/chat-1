@@ -4,7 +4,7 @@ return [
         'class' => 'Medoo\Medoo',
         'database_type' => 'mysql',
         'database_name' => 'test1',
-        'server' => '172.16.1.80',
+        'server' => 'localhost',
         'username' => 'root',
         'password' => '123456',
         'charset' => 'utf8',
