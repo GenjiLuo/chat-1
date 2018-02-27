@@ -1,4 +1,7 @@
 <?php
+/**
+ * 静态资源mime类型
+ */
 return [
     'apk' => 'application/vnd.android.package-archive',
     '3gp' => 'video/3gpp',

@@ -1,35 +1,37 @@
 <?php
+
 namespace server\ws;
+
 use common\interfaces\ServerInterface;
 use Swoole\WebSocket\Server;
-use server\classes\Operation;
+use App;
 
-class WsServer implements ServerInterface {
+class WsServer implements ServerInterface
+{
+    public function run()
+    {
+        $server = new Server(SERVER_HOST, WS_SERVER_PORT);
 
-    public  function run(){
-
-        $server= new Server(SERVER_HOST,WS_SERVER_PORT);
-
-        $server->on("open",function(Server $server,$frame){
-            echo "connect";
-        });
-//            Operation::open($server,$frame);
-//        });
-
-        $server->on("message",function(Server $server,$frame){
-           Operation::message($server,$frame);
+        $server->on("open", function (Server $server, $frame) {
+            App::$DI->router->dispatch(['server' => $server, "frame" => $frame], "open");
         });
 
-        $server->on("request",function(Server $server,$response){
+        $server->on("message", function (Server $server, $frame) {
+            App::$DI->router->dispatch(['server' => $server, "frame" => $frame], "message");
         });
 
-        $server->on("close",function(Server $server,$fd,$reactorId){
-            Operation::close($server,$fd,$reactorId);
+        $server->on("request", function (Server $server, $response) {
+            App::$DI->router->dispatch(['server' => $server, "response" => $response], "request");
         });
+
+        $server->on("close", function (Server $server, $fd, $reactorId) {
+            App::$DI->router->dispatch(['server' => $server, "fd" => $fd, 'reactorId' => $reactorId], "request");
+        });
+
+        App::notice("webSocket now is running on 0.0.0.0:" . WS_SERVER_PORT);
 
         $server->start();
     }
-
 
 
 }

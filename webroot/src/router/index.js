@@ -12,7 +12,6 @@ const notLoginJump = (to, form, next) => {
   if (token) {
     loginByToken({token: token}).then(res => {
       if (parseInt(res.status) === 1) {
-        console.log('haha')
         localStorage.setItem('user', JSON.stringify(res.user))
         next()
       } else {

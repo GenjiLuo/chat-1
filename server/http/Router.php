@@ -2,6 +2,7 @@
 
 namespace server\http;
 
+use server\http\controller\Controller;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 
@@ -18,19 +19,19 @@ class Router
     {
         // 初始化路由
         $routerFile = BASE_ROOT . '/server/http/config/router.php';
-        if(is_file($routerFile)){
+        if (is_file($routerFile)) {
             $router = require_once $routerFile;
             foreach ($router as $path => $call) {
                 $this->set($path, $call);
             }
-        }else{
+        } else {
             throw new \Exception('router file not exist');
         }
         // contentType
-        $contentTypeFile  =  BASE_ROOT . '/server/http/config/contentType.php';
-        if(is_file($contentTypeFile)){
+        $contentTypeFile = BASE_ROOT . '/server/http/config/contentType.php';
+        if (is_file($contentTypeFile)) {
             $this->contentType = require_once $contentTypeFile;
-        }else{
+        } else {
             throw new \Exception('content-type file not exist');
         }
 
@@ -66,10 +67,10 @@ class Router
         // 如果是静态资源
         if (substr($path, 1, 6) === 'static') {
             $file = BASE_ROOT . $path;
-            $ext = strtolower(pathinfo($file,PATHINFO_EXTENSION));
+            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
             if (is_file($file)) {
-                if(isset($this->contentType[$ext])){
-                    $response->header("Content-Type",$this->contentType[$ext]);
+                if (isset($this->contentType[$ext])) {
+                    $response->header("Content-Type", $this->contentType[$ext]);
                 }
                 $response->sendfile($file);
                 return true;
@@ -83,9 +84,25 @@ class Router
             if (is_string($callBack)) {
                 $result = (new $callBack($request, $response))->run();
             }
-            $response->end($result);
-            return true;
+            if (isset($result) && $result !== false) {
+                $response->end($result);
+                return true;
+            }
+        } else { //如果没有找到路由
+            $arr = array_map(function ($val) {
+                return ucfirst(strtolower($val));
+            }, explode("-", substr($path, 1)));
+            $controller = "server\http\controller\\" . implode("", $arr);
+            if (class_exists($controller)) {
+                $controller = new $controller($request,$response);
+                if ($controller instanceof Controller) {
+                    $response->end($controller->run());
+                    return true;
+                }
+            }
+
         }
+
         $response->status(404);
         $response->end('');
     }

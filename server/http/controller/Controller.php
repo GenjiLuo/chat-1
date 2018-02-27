@@ -18,11 +18,11 @@ abstract class Controller
     /**
      * @var string
      */
-    protected $responseType  = CResponse::HTML;
+    protected $responseType  = CResponse::JSON;
     /**
      * @var string
      */
-    protected $responseContent;
+    protected $responseContent = false;
 
     /**
      * Controller constructor.
@@ -33,6 +33,8 @@ abstract class Controller
     {
         $this->request = $request;
         $this->response = $response;
+        // 设置允许跨域访问
+        $this->response->header("Access-Control-Allow-Origin","*");
     }
 
     /**
@@ -54,8 +56,8 @@ abstract class Controller
                 case 'DELETE':
                     $this->responseContent = $this->delete();
                     break;
-                case 'OPTION':
-                    $this->responseContent = $this->option();
+                case 'OPTIONS':
+                    $this->responseContent = $this->options();
             }
             $this->formatter();
             $this->afterAction();
@@ -63,42 +65,54 @@ abstract class Controller
         }
     }
 
-    public function option()
+    public function options()
     {
         $this->response->header("Access-Control-Allow-Origin","*");
+        $this->response->header("Access-Control-Allow-Methods","PUT,POST,DELETE,OPTIONS,GET");
+        return "";
     }
 
     /**
      * @return mixed
      * get method
      */
-    abstract function view();
+    public  function view(){
+        return false;
+    }
 
     /**
      * @return mixed
      * put method
      */
-    abstract function update();
+    public function update(){
+        return false;
+    }
 
     /**
      * @return mixed
      * post method
      */
-    abstract function add();
+    public  function add(){
+        return false;
+    }
 
     /**
      * @return mixed
      * delete method
      */
-    abstract function delete();
+    public function delete(){
+        return false;
+    }
 
     /**
      * content formatter
      */
     public function formatter(){
-        $this->response->header("Content-Type",$this->responseType.";charset=UTF-8");
-        if($this->responseType === CResponse::JSON ){
-           $this->responseContent = json_encode($this->responseContent);
+        if($this->responseContent !== false ){
+            $this->response->header("Content-Type",$this->responseType.";charset=UTF-8");
+            if($this->responseType === CResponse::JSON ){
+                $this->responseContent = json_encode($this->responseContent,JSON_UNESCAPED_UNICODE);
+            }
         }
     }
 

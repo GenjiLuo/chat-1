@@ -12,38 +12,36 @@ class UserModel extends BaseModel {
     public static $defaultAvatar = "default.jpg";
 
     /**
-     * zjw
      * @param $where
      * @param array $field
      * @return mixed
      */
-    public static  function findOne($where,$field=['username','id','avatar','nickname']){
-        $data = App::$DI->db->select(self::tableName(),$field,$where);
+    public static  function findOne(array $where,$field=['username','id','age','sex','avatar']){
+        $data = self::getDB()->select(self::tableName(),$field,$where);
         if (!empty($data)){
-            $data[0]['avatar'] =BASE_URL. $data[0]['avatar'];
+            $data[0]['avatar'] = BASE_URL.$data[0]['avatar'];
             return $data[0];
         }
-        return $data;
+        return !empty($data)? $data[0]:[];
     }
 
     /**
-     * zjw
      * @param $data
      * @param $where
      * @return mixed
      */
-    public static function update($data,$where){
+    public static function update(array $data,array $where){
         return  App::$DI->db->update(self::tableName(),$data,$where);
     }
 
     /**
-     * zjw
      * @param $data
      * @return bool
      */
-    public static function add($data){
-        $data['avatar'] =self::$defaultPath.self::$defaultAvatar;
-        $data['nickname'] = $data['username'];
+    public static function add(array $data){
+        $data['password'] = md5($data['password']);
+        $data['created_at'] = date("Y-m-d H:i:s");
+        $data['avatar'] = "static/avatar/default.jpg";
         App::$DI->db->insert(self::tableName(),$data);
         if( App::$DI->db->id() ){
             return App::$DI->db->id();
