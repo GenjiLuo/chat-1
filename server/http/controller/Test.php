@@ -3,7 +3,7 @@ namespace server\http\controller;
 
 use common\lib\CResponse;
 
-class TestController extends Controller{
+class Test extends Controller{
 
     public function view()
     {

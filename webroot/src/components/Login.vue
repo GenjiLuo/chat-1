@@ -41,7 +41,6 @@
             {required: true, message: '请输入登录密码', trigger: 'blur'},
           username:
             {required: true, message: '请输入账号', trigger: 'blur'}
-
         }
       }
     },
@@ -55,7 +54,7 @@
                 localStorage.setItem('user', JSON.stringify(res.user))
                 this.$router.push('/chat')
               } else {
-                this.$message.error(res.msg)
+                this.$message.error("账号或密码错误")
               }
             })
           }
@@ -90,7 +89,7 @@
         border: 1px solid #eaeaea;
         box-shadow: 0 0 25px #cac6c6;
         position: relative;
-        top: 180px;
+        top: 100px;
         margin: auto;
         .title {
             margin: 0px auto 40px auto;

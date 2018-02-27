@@ -5,24 +5,24 @@
             <h2 class="title">注册账号</h2>
             <el-form-item prop="username">
                 <el-input type="text" v-model="registerForm.username" auto-complete="off"
-                          placeholder="账号"></el-input>
+                          placeholder="账号" />
             </el-form-item>
             <el-form-item prop="sex">
                 <el-select v-model="registerForm.sex" placeholder="性别">
-                    <el-option label="男" value="1"></el-option>
-                    <el-option label="女" value="0"></el-option>
+                    <el-option label="男" value="1" />
+                    <el-option label="女" value="0"/>
                 </el-select>
             </el-form-item>
             <el-form-item prop="age">
-                <el-input-number v-model="registerForm.age"  :min="1" :max="120" label="年龄"></el-input-number>
+                <el-input-number v-model="registerForm.age"  :min="1" :max="120" label="年龄" />
             </el-form-item>
             <el-form-item prop="password">
                 <el-input type="password" v-model="registerForm.password" auto-complete="off" placeholder="密码"
-                          @keyup.enter.native="handleSubmit"></el-input>
+                          @keyup.enter.native="handleSubmit" />
             </el-form-item>
             <el-form-item prop="checkPwd">
                 <el-input type="password" v-model="registerForm.checkPwd" auto-complete="off" placeholder="确认密码"
-                          @keyup.enter.native="handleSubmit"></el-input>
+                          @keyup.enter.native="handleSubmit"/>
             </el-form-item>
 
             <el-form-item style="width:100%;">
@@ -42,7 +42,7 @@
 
 </template>
 <script>
-  import {register} from '../api/api.js'
+  import {register, checkUsername} from '../api/api.js'
 
   export default {
     data () {
@@ -65,17 +65,31 @@
           callback()
         }
       }
+      const validateUsername = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输入用户名'))
+        }
+        checkUsername({username: value}).then(res => {
+          if (parseInt(res.status) !== 1) {
+            console.log(res)
+            callback(new Error('该用户名已注册'))
+          } else {
+            callback()
+          }
+        })
+      }
       return {
         registerForm: {
           username: '',
           password: '',
           checkPwd: '',
           age: 18,
-          sex: ''
+          sex: '0'
         },
         registerFormRule: {
           username: [
-            {required: true, trigger: 'blur', message: '请输入账号'}
+            {validator: validateUsername, trigger: 'blur'},
+            { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
           ],
           sex: [
             {required: true, trigger: 'blur', message: '请选择性别'}
@@ -94,6 +108,7 @@
       handleRegister () {
         this.$refs.registerForm.validate(result => {
           if (result) {
+            delete this.registerForm.checkPwd
             register(this.registerForm).then(res => {
               if (parseInt(res.status) === 1) {
                 this.$alert('注册成功', '恭喜', {
@@ -102,6 +117,10 @@
                     this.$router.push('/')
                   }
                 })
+              } else {
+                this.$message.error(res.errMsg)
+                this.registerForm.checkPwd = ''
+                this.registerForm.password = ''
               }
             })
           }
