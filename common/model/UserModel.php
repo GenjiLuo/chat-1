@@ -31,7 +31,7 @@ class UserModel extends BaseModel {
      * @return mixed
      */
     public static function update(array $data,array $where){
-        return  App::$DI->db->update(self::tableName(),$data,$where);
+        return self::getDB()->update(self::tableName(),$data,$where);
     }
 
     /**
@@ -42,15 +42,15 @@ class UserModel extends BaseModel {
         $data['password'] = md5($data['password']);
         $data['created_at'] = date("Y-m-d H:i:s");
         $data['avatar'] = "static/avatar/default.jpg";
-        App::$DI->db->insert(self::tableName(),$data);
-        if( App::$DI->db->id() ){
-            return App::$DI->db->id();
+        self::getDB()->insert(self::tableName(),$data);
+        if(self::getDB()->id() ){
+            return self::getDB()->id();
         }
         return false;
     }
 
     public static function findAll($where=[]){
-        $users = App::$DI->db->select(self::tableName(),['username','id','avatar','nickname'],$where);
+        $users = self::getDB()->select(self::tableName(),['username','id','avatar','sex','age'],$where);
         array_walk($users,function(&$v,$k){
             $v['avatar'] = BASE_URL.$v['avatar'];
         });

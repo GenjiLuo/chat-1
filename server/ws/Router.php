@@ -1,12 +1,23 @@
 <?php
 namespace server\ws;
-
 class Router{
 
     public $map = [];
 
-    public function dispatch(array $param,string $type){
+    public function __construct()
+    {
+        $routerFile  = BASE_ROOT."/server/ws/config/router.php";
+        if(is_file($routerFile)){
+            $this->map = require_once $routerFile;
+        }else{
+            throw new \Exception("router file not exist");
+        }
 
+    }
+
+    public function dispatch(array $param,string $type){
+        $action = $this->map[$type];
+        (new $action($param))->handle();
     }
 
     /**
@@ -23,7 +34,7 @@ class Router{
      * @param string $path
      * @return mixed|string
      */
-    public function get(string $path,$type )
+    public function get(string $path,$type)
     {
         return isset($this->map[$type][$path]) ? $this->map[$type][$path] : '';
     }

@@ -1,5 +1,6 @@
 <?php
 namespace server\ws\action;
+use Swoole\Http\Request;
 use Swoole\WebSocket\Server;
 
 abstract class Action{
@@ -15,9 +16,18 @@ abstract class Action{
      * @var int
      */
     public $fd;
+    /**
+     * @var Request
+     */
+    public $request;
 
     public $response;
     public $reactorId;
+
+
+    const TYPE_FRIEND_LIST = "friendList";
+    const TYPE_GO_ONLINE = "goOnline";
+
 
     public function __construct(array $params)
     {
@@ -36,6 +46,14 @@ abstract class Action{
         if(isset($params['reactorId'])){
             $this->reactorId = $params['reactorId'];
         }
+        if(isset($params['request'])){
+            $this->request = $params['request'];
+        }
+    }
+
+    public function push(int $fd,array $data,string $type){
+        $data['type'] = $type;
+        $this->server->push($fd,json_encode($data,JSON_UNESCAPED_UNICODE));
     }
 
     abstract function handle();

@@ -54,7 +54,7 @@
                 localStorage.setItem('user', JSON.stringify(res.user))
                 this.$router.push('/chat')
               } else {
-                this.$message.error("账号或密码错误")
+                this.$message.error('账号或密码错误')
               }
             })
           }

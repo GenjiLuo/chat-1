@@ -17,6 +17,7 @@ class HttpServer implements ServerInterface
         $server->set($config);
         $server->on('request', function (Request $request, Response $response) {
             try {
+                //简单请求设置跨域
                 $response->header("Access-Control-Allow-Origin","*");
                 App::$DI->router->dispatch($request, $response);
             }catch (\Exception $e){
