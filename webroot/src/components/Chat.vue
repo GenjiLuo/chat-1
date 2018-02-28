@@ -16,9 +16,9 @@
                             <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="昵称"></el-input>
                         </div>
                         <div class="list">
-                            <div v-for="friend in filterFriends" :key="friend.id" :title="friend.nickname" @click="changeChat(friend)" :class="{current: currentChat.id===friend.id }">
+                            <div v-for="friend in filterFriends" :key="friend.id" :title="friend.username" @click="changeChat(friend)" :class="{current: currentChat.id===friend.id }">
                                 <img :src="friend.avatar" :class="{offline:!friend.online}">
-                                <span>{{friend.nickname}}</span>
+                                <span>{{friend.username}}</span>
                                 <sup class="dot" v-if="friend.getNew===true"></sup>
                             </div>
                         </div>
@@ -28,7 +28,7 @@
             <div >
                 <div class="msg-box">
                     <div class="head">
-                        <p>{{currentChat.nickname}}</p>
+                        <p>{{currentChat.username}}</p>
                     </div>
                     <div class="content" id="content">
                         <div  v-for="msg in currentChat.msgList ">
@@ -68,7 +68,7 @@
             <div class="user-content">
                 <div v-for="user in userList" >
                     <img :src="user.avatar">
-                    <span>{{user.nickname}}</span>
+                    <span>{{user.username}}</span>
                     <el-button size="small" icon="el-icon-plus" ></el-button>
                 </div>
             </div>
@@ -84,7 +84,7 @@
         msg: '',
         search: '',
         currentChat: {
-          nickname: '',
+          username: '',
           msgList: [],
           id: '',
           avatar: ''
@@ -96,7 +96,7 @@
         friendList: [],
         chats: [],
         editForm: {
-          nickname: '',
+          username: '',
           avatar: ''
         },
         socket: '',
@@ -118,7 +118,7 @@
       filterFriends () {
         if (this.search !== '') {
           return this.friendList.filter((element) => {
-            return element.nickname.indexOf(this.search) !== -1
+            return element.username.indexOf(this.search) !== -1
           })
         }
         return this.friendList
@@ -191,7 +191,7 @@
       },
       // 显示编辑页面
       handleShowEdit () {
-        this.editForm.nickname = this.info.nickname
+        this.editForm.username = this.info.username
         this.visible.edit = true
       },
       // 头像上传成功事件
@@ -241,7 +241,7 @@
         for (let [index, { online }] of this.friendList.entries()) {
           if (online === false) {
             this.friendList.splice(index, 0, offlineUser)
-            this.$message.info(`${offlineUser.nickname}下线了`)
+            this.$message.info(`${offlineUser.username}下线了`)
             break
           }
         }
@@ -264,7 +264,7 @@
           if (online === false) {
             if (flag) {
               this.friendList.splice(index, 0, onlineUser)
-              this.$message.info(`${onlineUser.nickname}上线了`)
+              this.$message.info(`${onlineUser.username}上线了`)
             } else {
               this.friendList.splice(index, 0, data)
             }
@@ -288,7 +288,7 @@
         let data = JSON.parse(ws.data)
         switch (data.type) {
           case 'friendList':
-            this.friendList = data.friend
+            this.friendList = data.friends
             // 根据上下线排序
             this.friendList.sort(function (a, b) {
               if (a.online === true && b.online === false) return -1
@@ -307,6 +307,10 @@
             break
           case 'userList':
             this.userList = data.users
+            break
+          case 'forbidden':
+            localStorage.setItem('token', '')
+            this.$router.push('/')
         }
       }
     },

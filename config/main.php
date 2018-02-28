@@ -13,7 +13,7 @@ return [
     ],
     "redis" => [
         "class" => "common\lib\MyRedis",
-        "host" => "172.16.1.80",
+        "host" => "127.0.0.1",
         "port" => "6379"
     ],
     "log" => [

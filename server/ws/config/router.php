@@ -1,7 +1,7 @@
 <?php
 return [
-    "message"=>[],
-    "open"=>"",
+    "message"=>\server\ws\action\Message::class,
+    "open"=>\server\ws\action\Open::class,
     "request"=>"",
-    "close"=>''
+    "close"=>\server\ws\action\Close::class
 ];
