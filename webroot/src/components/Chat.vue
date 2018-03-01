@@ -61,18 +61,6 @@
                 <i  class="el-icon-plus avatar-uploader-icon" v-else></i>
             </el-upload>
         </el-dialog>
-        <el-dialog  :visible.sync="visible.addFriend" width="300px" :show-close="false" class="add-friend">
-            <span slot="title">
-                 <el-input size="small" @blur="handleGetUserList" v-model="userSearch"  prefix-icon="el-icon-search" placeholder="昵称"></el-input>
-            </span>
-            <div class="user-content">
-                <div v-for="user in userList" >
-                    <img :src="user.avatar">
-                    <span>{{user.username}}</span>
-                    <el-button size="small" icon="el-icon-plus" ></el-button>
-                </div>
-            </div>
-        </el-dialog >
     </div>
 </template>
 <script>
@@ -125,11 +113,7 @@
       }
     },
     methods: {
-      // 显示新增朋友页面
-      showAddFriend () {
-        this.visible.addFriend = true
-        this.handleGetUserList()
-      },
+
       // 日期格式化
       getNowFormatDate () {
         let date = new Date()
@@ -145,14 +129,7 @@
         }
         return date.getFullYear() + seperator1 + month + seperator1 + strDate + ' ' + date.getHours() + seperator2 + date.getMinutes() + seperator2 + date.getSeconds()
       },
-      // 获取用户列表
-      handleGetUserList () {
-        let msg = {
-          type: 'userList',
-          search: this.userSearch
-        }
-        this.socket.send(JSON.stringify(msg))
-      },
+
       // 发送消息
       handleSendMsg () {
         if (this.msg === '') {
@@ -304,9 +281,6 @@
             break
           case 'msg':
             this.handleMsg(data)
-            break
-          case 'userList':
-            this.userList = data.users
             break
           case 'forbidden':
             localStorage.setItem('token', '')
