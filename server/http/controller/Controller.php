@@ -1,7 +1,7 @@
 <?php
 
 namespace server\http\controller;
-
+use common\lib\exception\ForbiddenException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use common\lib\CResponse;
@@ -38,7 +38,8 @@ abstract class Controller
     }
 
     /**
-     * @return string
+     * @return mixed|string
+     * @throws ForbiddenException
      */
     public function run()
     {
@@ -62,6 +63,8 @@ abstract class Controller
             $this->formatter();
             $this->afterAction();
             return $this->responseContent;
+        }else{
+            throw new ForbiddenException();
         }
     }
 

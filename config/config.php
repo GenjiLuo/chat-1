@@ -5,3 +5,14 @@ define("HTTP_SERVER_PORT",8081);
 define("DEBUG",true);
 define("BASE_ROOT",dirname(dirname(__FILE__)));
 define("BASE_URL","http://localhost:".HTTP_SERVER_PORT);
+//db
+define("DB_HOST","127.0.0.1");
+define("DB_USER","root");
+define("DB_PWD","zjw");
+define("DB_PORT",3306);
+define("DB_NAME","test");
+define("DB_TYPE","mysql");
+define("DB_CHARSET","utf8");
+//redis
+define("REDIS_HOST","127.0.0.1");
+define("REDIS_PORT",3306);

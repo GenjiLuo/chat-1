@@ -5,6 +5,7 @@ namespace server\http;
 use server\http\controller\Controller;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use common\lib\exception\FileNotExistException;
 
 class Router
 {
@@ -25,14 +26,14 @@ class Router
                 $this->set($path, $call);
             }
         } else {
-            throw new \Exception('router file not exist');
+            throw new FileNotExistException('router file');
         }
         // contentType
         $contentTypeFile = BASE_ROOT . '/server/http/config/contentType.php';
         if (is_file($contentTypeFile)) {
             $this->contentType = require_once $contentTypeFile;
         } else {
-            throw new \Exception('content-type file not exist');
+            throw new FileNotExistException('content-type file');
         }
 
     }
@@ -59,11 +60,11 @@ class Router
      * @param Request $request
      * @param Response $response
      * @return bool
+     * @throws \common\lib\exception\ForbiddenException
      */
     public function dispatch(Request $request, Response $response)
     {
         $path = $request->server['request_uri'];
-
         // 如果是静态资源
         if (substr($path, 1, 6) === 'static') {
             $file = BASE_ROOT . $path;
@@ -82,13 +83,16 @@ class Router
                 $result = call_user_func($callBack, $request, $response);
             }
             if (is_string($callBack)) {
-                $result = (new $callBack($request, $response))->run();
+                $controller  = new $callBack($request, $response);
+                if($controller instanceof Controller){
+                    $result = $controller->run();
+                }
             }
             if (isset($result) && $result !== false) {
                 $response->end($result);
                 return true;
             }
-        } else { //如果没有找到路由
+        } else { //如果在路由配置中没有找到,则按照默认规则匹配
             $arr = array_map(function ($val) {
                 return ucfirst(strtolower($val));
             }, explode("-", substr($path, 1)));
@@ -100,9 +104,7 @@ class Router
                     return true;
                 }
             }
-
         }
-
         $response->status(404);
         $response->end('');
     }
