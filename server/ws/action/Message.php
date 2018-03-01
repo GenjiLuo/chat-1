@@ -5,7 +5,7 @@ use common\model\UserModel;
 use App;
 class Message extends Action{
 
-    function handle()
+    public function handle()
     {
         $data = json_decode($this->frame->data, true);
         $redis = App::$DI->redis;

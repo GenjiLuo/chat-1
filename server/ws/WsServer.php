@@ -29,8 +29,7 @@ class WsServer implements ServerInterface
             App::$DI->router->dispatch(['server' => $server, "fd" => $fd, 'reactorId' => $reactorId], "close");
         });
 
-        App::notice("webSocket now is running on 0.0.0.0:" . WS_SERVER_PORT);
-
+        App::notice("webSocket now is running on ".SERVER_HOST.":" . WS_SERVER_PORT);
         $server->start();
     }
 
