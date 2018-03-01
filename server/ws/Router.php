@@ -1,23 +1,34 @@
 <?php
 namespace server\ws;
+use common\lib\exception\FileNotExistException;
+use server\ws\action\Action;
+
 class Router{
 
     public $map = [];
 
+    /**
+     * Router constructor.
+     * @throws \Exception
+     */
     public function __construct()
     {
         $routerFile  = BASE_ROOT."/server/ws/config/router.php";
         if(is_file($routerFile)){
             $this->map = require_once $routerFile;
         }else{
-            throw new \Exception("router file not exist");
+            throw new FileNotExistException("router file");
         }
 
     }
 
     public function dispatch(array $param,string $type){
         $action = $this->map[$type];
-        (new $action($param))->handle();
+        $action  = new $action($param);
+        if ($action instanceof Action){
+            $action->handle();
+        }
+
     }
 
     /**

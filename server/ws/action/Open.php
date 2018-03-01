@@ -3,6 +3,8 @@ namespace server\ws\action;
 use common\model\UserModel;
 use App;
 use common\model\MessageModel;
+use Swoole\WebSocket\Server;
+
 class Open extends Action {
 
     public function handle()
@@ -11,6 +13,7 @@ class Open extends Action {
         $user = UserModel::findOne(["access_token"=>$token]);
         $fd = $this->request->fd;
         if($user){
+            var_dump($user);
             // 在线用户列表
             App::$DI->redis->sAdd("onlineList",$user['id']);
             // 用户id:$fd 关联哈希表
@@ -20,10 +23,6 @@ class Open extends Action {
             // 用户列表
             $userList = UserModel::findAll(['id[!]'=>$user['id']]);
             foreach ($userList as $key => &$val ){
-                // 过滤掉自己
-                if($val['id'] == $user['id']) {
-                    continue;
-                }
                 if (App::$DI->redis->sIsMember('onlineList', $val['id'])) {
                     $val['online'] = true;
                 } else {
@@ -42,11 +41,14 @@ class Open extends Action {
             }
             $data = ["friends" => $userList];
             $this->push($fd,$data,self::TYPE_FRIEND_LIST);
-            //发送用户上线信息
-            foreach ($this->server->connections as $userFd) {
-                if ($userFd == $fd) continue; //排除掉自己
-                $this->push($userFd, [ "user" => $user],self::TYPE_GO_ONLINE);
-            }
+            //调用task进程广播用户上线信息
+            $this->server->task(['fd'=>$fd,"user"=>$user],-1,function (Server $server,$taskId,$data){
+                foreach ($server->connections as $userFd) {
+                    if ($userFd == $data['fd']) continue; //排除掉自己
+                    $server->push($userFd, json_encode([ "user" => $data["user"],"type"=>Action::TYPE_GO_ONLINE]));
+                }
+                $server->finish();
+            });
         }else{
             $this->push($fd,[],"forbidden");
         }

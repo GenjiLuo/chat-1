@@ -5,7 +5,7 @@ return [
     'worker_num' => 4,
     'max_request'=> 0,
     //max_conn (max_connection)
-//    'task_worker_num' => 4
+    'task_worker_num' => 4
 //    task_ipc_mode => 1, //使用unix socket通信，默认模式
     //task_ipc_mode => 2, //使用消息队列通信
     //task_ipc_mode => 3, //使用消息队列通信，并设置为争抢模式
