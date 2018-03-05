@@ -9,3 +9,4 @@ out
 gen
 vendor/
 static/avatar
+runtime/

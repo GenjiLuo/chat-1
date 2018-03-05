@@ -54,7 +54,6 @@ class WsServer implements ServerInterface
         $server->on("finish", function (Server $server, int $taskId, string $data) {
             echo $data;
         });
-
         App::notice("webSocket now is running on " . SERVER_HOST . ":" . WS_SERVER_PORT);
         $server->start();
     }
