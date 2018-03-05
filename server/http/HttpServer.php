@@ -11,6 +11,8 @@ use App;
 
 class HttpServer implements ServerInterface
 {
+    public $config;
+
     /**
      * @return mixed|void
      * @throws FileNotExistException
@@ -18,22 +20,22 @@ class HttpServer implements ServerInterface
     public function run()
     {
         $server = new Server(SERVER_HOST, HTTP_SERVER_PORT);
-              $configFile = BASE_ROOT . "/server/http/config/server.php";
-        if(is_file($configFile)){
-            $config = require BASE_ROOT . "/server/http/config/server.php";
-        }else {
+        $configFile = BASE_ROOT . "/server/http/config/server.php";
+        if (is_file($configFile)) {
+            $this->config = require BASE_ROOT . "/server/http/config/server.php";
+        } else {
             throw new FileNotExistException("server config file");
         }
 
-        $server->set($config);
+        $server->set($this->config);
         $server->on('request', function (Request $request, Response $response) {
             try {
                 App::$DI->router->dispatch($request, $response);
-            }catch (\Exception $e){
+            } catch (\Exception $e) {
                 $response->status($e->getCode());
-                if(DEBUG){
+                if (DEBUG) {
                     $response->end($e->getMessage());
-                }else{
+                } else {
                     $response->end();
                 }
             }
@@ -41,4 +43,18 @@ class HttpServer implements ServerInterface
         App::notice("HttpServer now is running on 127.0.0.1:" . HTTP_SERVER_PORT);
         $server->start();
     }
+
+    /**
+     * @param null $key
+     * @return mixed
+     * 获取服务器配置参数
+     */
+    public function get($key = null)
+    {
+        if($key===null){
+            return $this->config;
+        }
+        return isset($this->config[$key])?$this->config[$key]:"";
+    }
+
 }
