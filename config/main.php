@@ -15,8 +15,5 @@ return [
         "class" => "common\lib\MyRedis",
         "host" => REDIS_HOST,
         "port" => REDIS_PORT
-    ],
-    "log" => [
-        "class"=>"common\lib\Log"
     ]
 ];

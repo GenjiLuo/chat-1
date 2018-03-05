@@ -3,7 +3,6 @@
 namespace server\ws;
 
 use common\interfaces\ServerInterface;
-use server\ws\action\Action;
 use Swoole\Http\Request;
 use Swoole\WebSocket\Server;
 use App;
@@ -12,23 +11,22 @@ use common\lib\exception\FileNotExistException;
 class WsServer implements ServerInterface
 {
     public $config;
-
     /**
      * @return mixed|void
      * @throws FileNotExistException
      */
     public function run()
     {
+        cli_set_process_title("swoole websocket server");
         $server = new Server(SERVER_HOST, WS_SERVER_PORT);
 
         $configFile = BASE_ROOT . "/server/ws/config/server.php";
         if (is_file($configFile)) {
-            $config = require BASE_ROOT . "/server/ws/config/server.php";
+            $this->config = require BASE_ROOT . "/server/ws/config/server.php";
         } else {
             throw new FileNotExistException("server config file");
         }
-
-        $server->set($config);
+        $server->set($this->config);
         // 连接建立回调函数
         $server->on("open", function (Server $server, Request $request) {
             App::$DI->router->dispatch(['server' => $server, "request" => $request], "open");
@@ -45,8 +43,7 @@ class WsServer implements ServerInterface
         $server->on("close", function (Server $server, $fd, $reactorId) {
             App::$DI->router->dispatch(['server' => $server, "fd" => $fd, 'reactorId' => $reactorId], "close");
         });
-
-        // 投递task 回调函数
+        // 投递task回调函数
         $server->on("task", function (Server $server, int $taskId, int $workerId, $data) {
             App::$DI->router->dispatch(['server'=>$server,'taskId'=>$taskId,'workerId'=>$workerId,'data'=>$data],'task');
         });
@@ -55,6 +52,10 @@ class WsServer implements ServerInterface
             echo $data;
         });
         App::notice("webSocket now is running on " . SERVER_HOST . ":" . WS_SERVER_PORT);
+        App::notice("server worker num:".$this->get("worker_num"));
+        App::notice("server reactor num:".$this->get("reactor_num"));
+        App::notice("task worker num reactor num:".$this->get("task_worker_num"));
+        App::$DI->log->handle();
         $server->start();
     }
 

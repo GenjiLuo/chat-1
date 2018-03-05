@@ -66,7 +66,7 @@ class Router
     {
         $path = $request->server['request_uri'];
         // 如果是静态资源
-        if (substr($path, 1, 6) === 'static') {
+        if (substr($path, 1, 6) === STATIC_DIR) {
             $file = BASE_ROOT . $path;
             $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
             if (is_file($file)) {

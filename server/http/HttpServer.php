@@ -19,6 +19,7 @@ class HttpServer implements ServerInterface
      */
     public function run()
     {
+        cli_set_process_title("swoole http server");
         $server = new Server(SERVER_HOST, HTTP_SERVER_PORT);
         $configFile = BASE_ROOT . "/server/http/config/server.php";
         if (is_file($configFile)) {
