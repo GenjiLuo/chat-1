@@ -14,7 +14,6 @@ use Swoole\Http\Response;
  */
 return [
     "/" => \server\http\controller\Test::class,
-    "user"=>\server\http\controller\User::class,
     "/checkUsername" => function (Request $request, Response $response) {
         $response->header("Content-Type", "application/json;charset=UTF-8");
         $user = \common\model\UserModel::findOne(["username" => $request->get['username']]);

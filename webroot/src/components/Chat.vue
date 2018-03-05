@@ -13,7 +13,7 @@
                     </div>
                     <div class="friend">
                         <div class="head">
-                            <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="昵称"></el-input>
+                            <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="昵称"/>
                         </div>
                         <div class="list">
                             <div v-for="friend in filterFriends" :key="friend.id" :title="friend.username" @click="changeChat(friend)" :class="{current: currentChat.id===friend.id }">
@@ -41,6 +41,9 @@
                                 <img :src="msg.avatar" />
                             </div>
                         </div>
+                    </div>
+                    <div class="tool-list">
+                        <i class="el-icon-picture" title="发送图片"></i>
                     </div>
                     <div class="input">
                         <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="msg"
@@ -328,7 +331,7 @@
         .content
             background-color: #f5f5f5
             overflow: auto
-            height: 350px
+            height: 340px
             text-align: left
             div
                 margin: 10px 10px
@@ -353,9 +356,8 @@
                     border-radius: 5px
 
         .input
-            border-top: 1px solid #D8DCE5
-            height: 180px
-            padding: 20px
+            height: 150px
+            padding: 0px 20px 20px 20px
             .send
                 float: right
                 margin-top: 10px
@@ -371,6 +373,15 @@
                 line-height: $headHeight
                 margin: 0
                 padding: 0 20px
+        .tool-list
+            border-top: 1px solid #D8DCE5
+            height: 25px
+            text-align: right
+            padding: 5px 30px 5px 0
+            i
+                &:hover
+                    cursor: pointer
+
     .chat
         margin-top: 100px
         text-align: center

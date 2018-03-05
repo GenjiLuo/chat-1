@@ -29,8 +29,10 @@ class App{
         }
     }
 
+    /**
+     * @param string $str
+     */
     public static function notice(string $str){
-
         self::$DI->log->notice($str);
     }
 }
