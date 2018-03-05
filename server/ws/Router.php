@@ -22,13 +22,16 @@ class Router{
 
     }
 
+    /**
+     * @param array $param
+     * @param string $type
+     */
     public function dispatch(array $param,string $type){
         $action = $this->map[$type];
         $action  = new $action($param);
         if ($action instanceof Action){
             $action->handle();
         }
-
     }
 
     /**

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import qs from 'qs'
 
-const base = 'http://192.168.92.121'
+const base = 'http://192.168.92.121:8081'
 export const ws = 'ws://192.168.92.121:9501'
 axios.interceptors.request.use(
   config => {

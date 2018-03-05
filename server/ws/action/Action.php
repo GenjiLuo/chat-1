@@ -30,12 +30,28 @@ abstract class Action{
      * @var int
      */
     public $reactorId;
-
+    /**
+     * @var int
+     */
+    public $taskId;
+    /**
+     * @var int
+     */
+    public $workerId;
+    /**
+     * @var array
+     * taskHandle 参数
+     */
+    public $data;
 
     const TYPE_FRIEND_LIST = "friendList";
     const TYPE_GO_ONLINE = "goOnline";
     const TYPE_MESSAGE ="msg";
 
+    /**
+     * Action constructor.
+     * @param array $params
+     */
     public function __construct(array $params)
     {
         if(isset($params['server'])){
@@ -56,6 +72,15 @@ abstract class Action{
         if(isset($params['request'])){
             $this->request = $params['request'];
         }
+        if(isset($params['taskId'])){
+            $this->taskId = $params['taskId'];
+        }
+        if(isset($params['workerId'])){
+            $this->workerId = $params['workerId'];
+        }
+        if(isset($params['data'])){
+            $this->data = $params['data'];
+        }
     }
 
     /**
@@ -68,9 +93,26 @@ abstract class Action{
         $this->server->push($fd,json_encode($data,JSON_UNESCAPED_UNICODE));
     }
 
+    /**
+     * @param int $fd
+     * @param array $data
+     * 发送消息
+     */
     public function pushMessage(int $fd,array $data){
         $this->push($fd,$data,self::TYPE_MESSAGE);
     }
+
+    /**
+     * @param array $data
+     * @param string $type
+     * @param int $taskId
+     * 投递task任务
+     */
+    public function pushTask(array $data,string $type,$taskId = -1){
+        $dat['type'] = $type;
+        $this->server->task($data,$taskId);
+    }
+
     abstract function handle();
 
 }

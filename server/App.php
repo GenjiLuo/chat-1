@@ -9,10 +9,13 @@ class App{
 
     public static  $DI;
 
-    public static function run(ServerInterface $server,array $main){
+    public static $server;
+
+    public static function run(ServerInterface $server,$DI){
         require_once BASE_ROOT."/vendor/autoload.php";
-        self::$DI = new Di($main);
-        $server->run();
+        self::$DI = $DI;
+        self::$server = $server;
+        self::$server->run();
     }
 
     /**
@@ -27,6 +30,7 @@ class App{
     }
 
     public static function notice(string $str){
+
         self::$DI->log->notice($str);
     }
 }

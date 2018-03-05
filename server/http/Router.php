@@ -14,7 +14,7 @@ class Router
 
     /**
      * Router constructor.
-     * @throws \Exception
+     * @throws FileNotExistException
      */
     public function __construct()
     {
