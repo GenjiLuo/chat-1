@@ -89,8 +89,10 @@ abstract class Action{
      * @param string $type
      */
     public function push(int $fd,array $data,string $type){
-        $data['type'] = $type;
-        $this->server->push($fd,json_encode($data,JSON_UNESCAPED_UNICODE));
+        if($this->server->exist($fd)){
+            $data['type'] = $type;
+            $this->server->push($fd,json_encode($data,JSON_UNESCAPED_UNICODE));
+        }
     }
 
     /**
@@ -109,10 +111,13 @@ abstract class Action{
      * 投递task任务
      */
     public function pushTask(array $data,string $type,$taskId = -1){
-        $dat['type'] = $type;
+        $data['type'] = $type;
         $this->server->task($data,$taskId);
     }
 
+    /**
+     * @return mixed
+     */
     abstract function handle();
 
 }

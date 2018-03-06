@@ -1,8 +1,10 @@
 <?php
 namespace server\ws\action;
 use App;
+
 class Close extends Action{
-    function handle()
+
+    public function handle()
     {
         $redis = App::$DI->redis;
         $userId = $redis->hGet("userFd:userId" , $this->fd);
