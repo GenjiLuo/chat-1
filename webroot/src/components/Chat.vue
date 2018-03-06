@@ -178,7 +178,6 @@
       handleAvatarSuccess (res, file) {
         this.info.avatar = res.avatar
       },
-
       // 头像上传验证
       beforeAvatarUpload (file) {
         const isJPG = file.type === 'image/jpeg'
@@ -197,9 +196,11 @@
         this.socket = new WebSocket(`${ws}?token=${token}`)
         this.socket.onopen = this.onConnect
         this.socket.onmessage = this.onMessage
+        this.socket.close = this.onClose()
       },
       // 链接成功事件
       onConnect (ws) {
+        this.$message.info(`已成功连接到聊天服务器`)
         this.isConnect = true
       },
       //
@@ -285,9 +286,17 @@
           case 'msg':
             this.handleMsg(data)
             break
+          // token不正确
           case 'forbidden':
             localStorage.setItem('token', '')
             this.$router.push('/')
+          case 'repeat':
+            this.$alert('你的账号已在别处登陆', '提示', {
+              confirmButtonText: '确定',
+              callback: () => {
+                this.$router.push('/')
+              }
+            });
         }
       }
     },

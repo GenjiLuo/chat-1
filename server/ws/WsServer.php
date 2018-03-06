@@ -51,6 +51,18 @@ class WsServer implements ServerInterface
         $server->on("finish", function (Server $server, int $taskId, string $data) {
             echo $data;
         });
+        // worker start 回调
+        $server->on("WorkerStart",function (Server $server,int $workId){
+            // 设置用户重复登陆时自动断开发送消息通知，每个work都有自己独立的定时器
+            // 所以设置有多少个worker就会生成多少个定时器
+           $server->tick(500,function () use ($server){
+              $closeFd  = App::$DI->redis->rPop("closeQueue");
+              if($closeFd && $server->exist($closeFd)){
+                  $server->push($closeFd,json_encode(['type'=>'repeat']));
+                  $server->close($closeFd);
+              }
+           });
+        });
         App::notice("webSocket now is running on " . SERVER_HOST . ":" . WS_SERVER_PORT);
         App::notice("server worker num:".$this->get("worker_num"));
         App::notice("server reactor num:".$this->get("reactor_num"));
