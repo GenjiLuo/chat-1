@@ -31,7 +31,7 @@ class HttpServer implements ServerInterface
         $server->set($this->config);
         $server->on('request', function (Request $request, Response $response) {
             try {
-                App::$DI->router->dispatch($request, $response);
+                App::$router->dispatch($request, $response);
             } catch (\Exception $e) {
                 $response->status($e->getCode());
                 if (DEBUG) {

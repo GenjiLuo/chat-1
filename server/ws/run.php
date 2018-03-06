@@ -1,6 +1,6 @@
 <?php
 require "../../config/config.php";
 require "../App.php";
-$main = array_merge(require BASE_ROOT . "/config/main.php", require BASE_ROOT . "/server/ws/config/main.php");
+$dependence = array_merge(require BASE_ROOT . "/config/dependence.php", require BASE_ROOT . "/server/ws/config/dependence.php");
 spl_autoload_register([App::class, 'autoLoad']);
-App::run(new \server\ws\WsServer(), new \server\Di($main));
+App::run(new \server\ws\WsServer(), new \server\ws\Router(),$dependence);

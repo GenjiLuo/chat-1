@@ -11,17 +11,18 @@ class Open extends Action {
         $token = $this->request->get['token'];
         $user = UserModel::findOne(["access_token"=>$token]);
         $fd = $this->request->fd;
+        $redis = $this->server->redis;
         if($user){
             // 在线用户列表
-            App::$DI->redis->sAdd("onlineList",$user['id']);
+            $redis->sAdd("onlineList",$user['id']);
             // 用户id:$fd 关联哈希表
-            App::$DI->redis->hSet("userId:userFd",$user['id'],$fd);
+            $redis->hSet("userId:userFd",$user['id'],$fd);
             // 用户$fd:id 关联哈希表
-            App::$DI->redis->hSet("userFd:userId",$fd,$user['id']);
+            $redis->hSet("userFd:userId",$fd,$user['id']);
             // 用户列表
             $userList = UserModel::findAll(['id[!]'=>$user['id']]);
             foreach ($userList as $key => &$val ){
-                if (App::$DI->redis->sIsMember('onlineList', $val['id'])) {
+                if ($redis->sIsMember('onlineList', $val['id'])) {
                     $val['online'] = true;
                 } else {
                     $val['online'] = false;

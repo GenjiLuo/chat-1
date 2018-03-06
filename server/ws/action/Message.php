@@ -6,12 +6,12 @@ use App;
 use Swoole\Mysql;
 class Message extends Action{
     /**
-     * @throws Mysql\Exception
+     * @return mixed|void
      */
     public function handle()
     {
         $data = json_decode($this->frame->data, true);
-        $redis = App::$DI->redis;
+        $redis = $this->server->redis;
         if ($data['type'] === 'msg') {
             $to = $data['to'];
             $message = [
@@ -22,21 +22,6 @@ class Message extends Action{
                 "time" => $data['time'],
             ];
             MessageModel::add($message);
-            // 异步保存消息
-            $swooleDB = new Mysql();
-            $swooleDB->connect($this->db,function (Mysql $db,$r) use ($message){
-                $sql = 'insert into ';
-                $db->query($sql, function(Mysql $db, $r) {
-                    if ($r === false)
-                    {
-                        var_dump($db->error, $db->errno);
-                    } elseif ($r === true )
-                    {
-                        var_dump($db->affected_rows, $db->insert_id);
-                    }
-                    $db->close();
-                });
-            });
             if ($redis->sIsMember("onlineList", $to)) {
                 $data['owner'] = false;
                 $toFd = $redis->hGet("userId:userFd",$to);

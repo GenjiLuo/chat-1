@@ -29,23 +29,23 @@ class WsServer implements ServerInterface
         $server->set($this->config);
         // 连接建立回调函数
         $server->on("open", function (Server $server, Request $request) {
-            App::$DI->router->dispatch(['server' => $server, "request" => $request], "open");
+            App::$router->dispatch(['server' => $server, "request" => $request], "open");
         });
         // 接受消息回调函数
         $server->on("message", function (Server $server, $frame) {
-            App::$DI->router->dispatch(['server' => $server, "frame" => $frame], "message");
+            App::$router->dispatch(['server' => $server, "frame" => $frame], "message");
         });
         // 接受请求回调函数
         $server->on("request", function (Server $server, $response) {
-//            App::$DI->router->dispatch(['server' => $server, "response" => $response], "request");
+//            App::$router->dispatch(['server' => $server, "response" => $response], "request");
         });
         // 连接关闭回调函数
         $server->on("close", function (Server $server, $fd, $reactorId) {
-            App::$DI->router->dispatch(['server' => $server, "fd" => $fd, 'reactorId' => $reactorId], "close");
+            App::$router->dispatch(['server' => $server, "fd" => $fd, 'reactorId' => $reactorId], "close");
         });
         // 投递task回调函数
         $server->on("task", function (Server $server, int $taskId, int $workerId, $data) {
-            App::$DI->router->dispatch(['server'=>$server,'taskId'=>$taskId,'workerId'=>$workerId,'data'=>$data],'task');
+            App::$router->dispatch(['server'=>$server,'taskId'=>$taskId,'workerId'=>$workerId,'data'=>$data],'task');
         });
         // task任务完成回调
         $server->on("finish", function (Server $server, int $taskId, string $data) {
@@ -53,21 +53,19 @@ class WsServer implements ServerInterface
         });
         // worker start 回调
         $server->on("WorkerStart",function (Server $server,int $workId){
+            // 不同的进程不能共用同一个redis/mysql连接，否则数据会发现错乱
+            $server->redis = new \Redis();
+            $server->redis->connect(REDIS_HOST,REDIS_PORT);
             // 设置用户重复登陆时自动断开发送消息通知，每个work都有自己独立的定时器
             // 所以设置有多少个worker就会生成多少个定时器
            $server->tick(500,function () use ($server){
-              $closeFd  = App::$DI->redis->rPop("closeQueue");
+              $closeFd  = $server->redis->rPop("closeQueue");
               if($closeFd && $server->exist($closeFd)){
                   $server->push($closeFd,json_encode(['type'=>'repeat']));
                   $server->close($closeFd);
               }
            });
         });
-        App::notice("webSocket now is running on " . SERVER_HOST . ":" . WS_SERVER_PORT);
-        App::notice("server worker num:".$this->get("worker_num"));
-        App::notice("server reactor num:".$this->get("reactor_num"));
-        App::notice("task worker num reactor num:".$this->get("task_worker_num"));
-        App::$DI->log->handle();
         $server->start();
     }
 
