@@ -6,7 +6,9 @@ class Close extends Action{
 
     public function handle()
     {
+
         $redis =$this->server->redis;
+
         $userId = $redis->hGet("userFd:userId" , $this->fd);
         if ($userId) {
             $redis->hDel("userId:userFd" , $userId );

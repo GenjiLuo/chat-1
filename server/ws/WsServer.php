@@ -29,6 +29,7 @@ class WsServer implements ServerInterface
         $server->set($this->config);
         // 连接建立回调函数
         $server->on("open", function (Server $server, Request $request) {
+
             App::$router->dispatch(['server' => $server, "request" => $request], "open");
         });
         // 接受消息回调函数
@@ -46,6 +47,8 @@ class WsServer implements ServerInterface
         // 投递task回调函数
         $server->on("task", function (Server $server, int $taskId, int $workerId, $data) {
             App::$router->dispatch(['server'=>$server,'taskId'=>$taskId,'workerId'=>$workerId,'data'=>$data],'task');
+
+
         });
         // task任务完成回调
         $server->on("finish", function (Server $server, int $taskId, string $data) {
@@ -53,6 +56,7 @@ class WsServer implements ServerInterface
         });
         // worker start 回调
         $server->on("WorkerStart",function (Server $server,int $workId){
+
             // 不同的进程不能共用同一个redis/mysql连接，否则数据会发现错乱
             $server->redis = new \Redis();
             $server->redis->connect(REDIS_HOST,REDIS_PORT);
@@ -60,6 +64,7 @@ class WsServer implements ServerInterface
             // 所以设置有多少个worker就会生成多少个定时器
            $server->tick(500,function () use ($server){
               $closeFd  = $server->redis->rPop("closeQueue");
+
               if($closeFd && $server->exist($closeFd)){
                   $server->push($closeFd,json_encode(['type'=>'repeat']));
                   $server->close($closeFd);

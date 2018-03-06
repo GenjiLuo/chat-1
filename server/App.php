@@ -1,5 +1,4 @@
 <?php
-use server\Di;
 use common\interfaces\ServerInterface;
 /**
  * zjw
@@ -8,6 +7,7 @@ use common\interfaces\ServerInterface;
 class App{
 
     public static  $DI;
+
 
     public static $server;
 
@@ -20,6 +20,7 @@ class App{
         self::$router = $router;
         self::$server = $server;
         self::$dependence = $dependence;
+
         self::$server->run();
     }
 

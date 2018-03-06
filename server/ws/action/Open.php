@@ -11,6 +11,7 @@ class Open extends Action {
         $token = $this->request->get['token'];
         $user = UserModel::findOne(["access_token"=>$token]);
         $fd = $this->request->fd;
+
         $redis = $this->server->redis;
         if($user){
             // 在线用户列表
@@ -23,6 +24,7 @@ class Open extends Action {
             $userList = UserModel::findAll(['id[!]'=>$user['id']]);
             foreach ($userList as $key => &$val ){
                 if ($redis->sIsMember('onlineList', $val['id'])) {
+
                     $val['online'] = true;
                 } else {
                     $val['online'] = false;
