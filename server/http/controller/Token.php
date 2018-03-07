@@ -2,16 +2,12 @@
 
 namespace server\http\controller;
 
+use common\lib\MyRedis;
 use common\model\UserModel;
 use App;
 
 class Token extends Controller
 {
-    public function view()
-    {
-        return false;
-    }
-
     public function update()
     {
         if (!isset($this->request->post['token'])) {
@@ -19,10 +15,7 @@ class Token extends Controller
             $password = $this->request->post['password'];
             $user = UserModel::findOne(['username' => $username, "password" => md5($password)]);
             if ($user) {
-
-                $redis = new \Redis();
-                $redis->connect(REDIS_HOST,REDIS_PORT);
-
+                $redis = App::createObject(MyRedis::class);
                 // 如果该用户已经登陆在线,获取fd加入待关闭的队列中
                 if($redis->sIsMember("onlineList",$user['id'])){
                     $fd  = $redis->hGet("userId:userFd" , $user['id'] );

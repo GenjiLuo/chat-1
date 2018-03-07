@@ -1,6 +1,6 @@
 <?php
 
-namespace common\interfaces;
+namespace core\interfaces;
 /**
  * Interface ServerInterface
  * @package common\interfaces

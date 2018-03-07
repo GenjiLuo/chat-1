@@ -6,7 +6,7 @@ use common\lib\exception\FileNotExistException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Http\Server;
-use common\interfaces\ServerInterface;
+use core\interfaces\ServerInterface;
 use App;
 
 class HttpServer implements ServerInterface
@@ -31,7 +31,7 @@ class HttpServer implements ServerInterface
         $server->set($this->config);
         $server->on('request', function (Request $request, Response $response) {
             try {
-                App::$router->dispatch($request, $response);
+                App::$comp->router->dispatch($request, $response);
             } catch (\Exception $e) {
                 $response->status($e->getCode());
                 if (DEBUG) {
@@ -41,7 +41,6 @@ class HttpServer implements ServerInterface
                 }
             }
         });
-        App::notice("HttpServer now is running on 127.0.0.1:" . HTTP_SERVER_PORT);
         $server->start();
     }
 

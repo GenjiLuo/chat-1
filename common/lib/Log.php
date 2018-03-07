@@ -14,9 +14,9 @@ class Log{
      */
     public $filePath;
 
-    public function __construct(array $config)
+    public function __construct($filePath)
     {
-        $this->filePath = $config['filePath'];
+        $this->filePath = $filePath;
     }
 
     public function notice(string $str){

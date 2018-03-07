@@ -2,10 +2,11 @@
 
 namespace server\ws;
 
-use common\interfaces\ServerInterface;
+use core\interfaces\ServerInterface;
+use common\lib\MyRedis;
 use Swoole\Http\Request;
 use Swoole\WebSocket\Server;
-use App;
+use core\App;
 use common\lib\exception\FileNotExistException;
 
 class WsServer implements ServerInterface
@@ -19,7 +20,6 @@ class WsServer implements ServerInterface
     {
         cli_set_process_title("swoole websocket server");
         $server = new Server(SERVER_HOST, WS_SERVER_PORT);
-
         $configFile = BASE_ROOT . "/server/ws/config/server.php";
         if (is_file($configFile)) {
             $this->config = require BASE_ROOT . "/server/ws/config/server.php";
@@ -29,42 +29,38 @@ class WsServer implements ServerInterface
         $server->set($this->config);
         // 连接建立回调函数
         $server->on("open", function (Server $server, Request $request) {
-
-            App::$router->dispatch(['server' => $server, "request" => $request], "open");
+            App::$comp->router->dispatch(['server' => $server, "request" => $request], "open");
         });
         // 接受消息回调函数
         $server->on("message", function (Server $server, $frame) {
-            App::$router->dispatch(['server' => $server, "frame" => $frame], "message");
+            App::$comp->router->dispatch(['server' => $server, "frame" => $frame], "message");
         });
         // 接受请求回调函数
         $server->on("request", function (Server $server, $response) {
-//            App::$router->dispatch(['server' => $server, "response" => $response], "request");
+//           App::$comp->router->dispatch(['server' => $server, "response" => $response], "request");
         });
         // 连接关闭回调函数
         $server->on("close", function (Server $server, $fd, $reactorId) {
-            App::$router->dispatch(['server' => $server, "fd" => $fd, 'reactorId' => $reactorId], "close");
+            App::$comp->router->dispatch(['server' => $server, "fd" => $fd, 'reactorId' => $reactorId], "close");
         });
         // 投递task回调函数
         $server->on("task", function (Server $server, int $taskId, int $workerId, $data) {
-            App::$router->dispatch(['server'=>$server,'taskId'=>$taskId,'workerId'=>$workerId,'data'=>$data],'task');
-
+            App::$comp->router->dispatch(['server'=>$server,'taskId'=>$taskId,'workerId'=>$workerId,'data'=>$data],'task');
 
         });
         // task任务完成回调
         $server->on("finish", function (Server $server, int $taskId, string $data) {
-            echo $data;
+
         });
         // worker start 回调
+        // 此$server是worker 进程的server
         $server->on("WorkerStart",function (Server $server,int $workId){
-
-            // 不同的进程不能共用同一个redis/mysql连接，否则数据会发现错乱
-            $server->redis = new \Redis();
-            $server->redis->connect(REDIS_HOST,REDIS_PORT);
-            // 设置用户重复登陆时自动断开发送消息通知，每个work都有自己独立的定时器
-            // 所以设置有多少个worker就会生成多少个定时器
+            // 每个worker各自拥有自己的redis/mysql 连接
+            $server->redis = App::createObject(MyRedis::class);
+            // 设置用户重复登陆时自动断开发送消息通知，每个worker/task都有自己独立的定时器
+            // 所以设置有多少个worker + task 就会生成多少个定时器并发执行
            $server->tick(500,function () use ($server){
               $closeFd  = $server->redis->rPop("closeQueue");
-
               if($closeFd && $server->exist($closeFd)){
                   $server->push($closeFd,json_encode(['type'=>'repeat']));
                   $server->close($closeFd);
