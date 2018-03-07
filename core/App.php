@@ -1,6 +1,6 @@
 <?php
 namespace core;
-use common\interfaces\ServerInterface;
+use core\interfaces\ServerInterface;
 
 /**
  * Class App
@@ -14,8 +14,8 @@ class App{
     public static $comp;
 
     public static function run(ServerInterface $server,$dependence,$component){
-        IOC::$dependence = $dependence;
         require_once BASE_ROOT . "/vendor/autoload.php";
+        IOC::$dependence = $dependence;
         self::$comp = new Component($component);
         self::$server = $server;
         self::$server->run();

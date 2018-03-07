@@ -7,7 +7,7 @@ use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Http\Server;
 use core\interfaces\ServerInterface;
-use App;
+use core\App;
 
 class HttpServer implements ServerInterface
 {
@@ -43,7 +43,6 @@ class HttpServer implements ServerInterface
         });
         $server->start();
     }
-
     /**
      * @param null $key
      * @return mixed

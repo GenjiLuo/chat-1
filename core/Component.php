@@ -57,6 +57,7 @@ class Component
     /**
      * @param string $name
      * @param $value
+     * 动态注册
      */
     public function set(string $name, $value)
     {
@@ -69,6 +70,7 @@ class Component
     /**
      * @param string $name
      * @param $value
+     * 动态注册
      */
     public function __set(string $name, $value)
     {

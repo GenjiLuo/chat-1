@@ -17,10 +17,11 @@ class Log{
     public function __construct($filePath)
     {
         $this->filePath = $filePath;
+        $this->content = new \SplQueue();
     }
 
     public function notice(string $str){
-        $this->content .= "[".date("Y-m-d H:i:s")."] NOTICE:".$str.PHP_EOL;
+        $this->content=  "[".date("Y-m-d H:i:s")."] NOTICE:".$str.PHP_EOL;
     }
 
     public function warning(string $str){
