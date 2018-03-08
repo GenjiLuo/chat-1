@@ -1,28 +1,22 @@
 <?php
 namespace common\model;
-use App;
-/**
- * zjw
- * 2017/11/20
- */
-class UserModel extends BaseModel {
+
+use common\lib\Model;
+
+class UserModel extends Model {
 
 
     public static $defaultPath = "/static/avatar/";
     public static $defaultAvatar = "default.jpg";
+    public static $tableName = "user";
 
     /**
      * @param $where
      * @param array $field
      * @return mixed
      */
-    public static  function findOne(array $where,$field=['username','id','age','sex','avatar']){
-        $data = self::getDB()->select(self::tableName(),$field,$where);
-        if (!empty($data)){
-            $data[0]['avatar'] = BASE_URL.$data[0]['avatar'];
-            return $data[0];
-        }
-        return !empty($data)? $data[0]:[];
+    public function findOne(array $where,$field=['username','id','age','sex','avatar']){
+        $sql = $this->query("");
     }
 
     /**

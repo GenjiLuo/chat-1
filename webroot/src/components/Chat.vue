@@ -290,13 +290,14 @@
           case 'forbidden':
             localStorage.setItem('token', '')
             this.$router.push('/')
+            break
           case 'repeat':
             this.$alert('你的账号已在别处登陆', '提示', {
               confirmButtonText: '确定',
               callback: () => {
                 this.$router.push('/')
               }
-            });
+            })
         }
       }
     },

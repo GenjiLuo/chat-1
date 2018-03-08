@@ -1,10 +1,6 @@
 <?php
 namespace common\model;
-/**
- * zjw
- * Date: 2017/11/23
- */
-use App;
+
 class MessageModel extends BaseModel{
 
     public  static  function add($message){
