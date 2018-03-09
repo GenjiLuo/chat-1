@@ -4,6 +4,7 @@ namespace server\ws;
 
 use core\interfaces\ServerInterface;
 use common\lib\MyRedis;
+use Medoo\Medoo;
 use Swoole\Http\Request;
 use Swoole\WebSocket\Server;
 use core\App;
@@ -57,6 +58,7 @@ class WsServer implements ServerInterface
         $server->on("WorkerStart",function (Server $server,int $workId){
             // 每个worker各自拥有自己的redis/mysql 连接
             $server->redis = App::createObject(MyRedis::class);
+            $server->db =  App::createObject(Medoo::class);
             // 设置用户重复登陆时自动断开发送消息通知，每个worker/task都有自己独立的定时器
             // 所以设置有多少个worker + task 就会生成多少个定时器并发执行
            $server->tick(500,function () use ($server){

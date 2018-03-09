@@ -8,6 +8,8 @@ use Swoole\Http\Response;
 use Swoole\Http\Server;
 use core\interfaces\ServerInterface;
 use core\App;
+use common\lib\MyRedis;
+use Medoo\Medoo;
 
 class HttpServer implements ServerInterface
 {
@@ -41,6 +43,7 @@ class HttpServer implements ServerInterface
                 }
             }
         });
+
         $server->start();
     }
     /**

@@ -15,7 +15,6 @@ class Component
     public function __construct(array $component)
     {
         foreach ($component as $name => $def) {
-            var_dump($def);
             if(is_array($def)){
                 $className = $def['class'];
                 unset($def['class']);

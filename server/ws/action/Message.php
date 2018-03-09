@@ -12,6 +12,7 @@ class Message extends Action{
     {
         $data = json_decode($this->frame->data, true);
         $redis = $this->server->redis;
+        $messageModel = new MessageModel($this->server->db);
         if ($data['type'] === 'msg') {
             $to = $data['to'];
             $message = [
@@ -21,7 +22,7 @@ class Message extends Action{
                 "msg" => $data['msg'],
                 "time" => $data['time'],
             ];
-            MessageModel::add($message);
+            $messageModel->add($message);
             if ($redis->sIsMember("onlineList", $to)) {
                 $data['owner'] = false;
                 $toFd = $redis->hGet("userId:userFd",$to);
@@ -31,7 +32,7 @@ class Message extends Action{
             }
         }
         if ($data['type'] === 'userList') {
-            $userList = UserModel::findAll(['nickname[~]'=>'%'.$data['search'].'%']);
+            $userList = $messageModel->find(['nickname[~]'=>'%'.$data['search'].'%']);
             $this->push($this->frame->fd,['users'=>$userList],self::TYPE_FRIEND_LIST);
         }
     }

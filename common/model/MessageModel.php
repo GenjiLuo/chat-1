@@ -1,19 +1,39 @@
 <?php
+
 namespace common\model;
 
-class MessageModel extends BaseModel{
+use common\lib\DB;
 
-    public  static  function add($message){
-        $db = App::$DI->db;
-        $db->insert(self::tableName(),$message);
-        if($db->id()){
+/**
+ * Class MessageModel
+ * @package common\model
+ */
+class MessageModel extends DB
+{
+
+    public static $tableName = "message";
+
+    /**
+     * @param $message
+     * @return bool
+     */
+    public function add($message)
+    {
+        $db = $this->medoo;
+        $db->insert(self::$tableName, $message);
+        if ($db->id()) {
             return false;
         }
         return true;
     }
 
-    public static function find($where){
-        return   App::$DI->db->select(self::tableName(),"*",$where);
+    /**
+     * @param $where
+     * @return array|bool
+     */
+    public function find($where)
+    {
+        return $this->medoo->select(self::$tableName, "*", $where);
     }
 
 }

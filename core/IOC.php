@@ -41,10 +41,10 @@ class IOC
         $paramsArr = [];
         if (isset(self::$dependence[$className])) { //如果设置了依赖关系
             $dependent = self::$dependence[$className];
-            if (is_string($dependent)) {
-                if (class_exists($dependent)) {  //如果该依赖是类
+            if (is_string($dependent)) {      // 依赖是字符串
+                if (class_exists($dependent)) {    //该字符串是类
                     $paramsArr[] = self::getInstance($dependent);
-                } else {                          //如果只是普通参数
+                } else {                          //该字符串是普通参数
                     $paramsArr[] = $dependent;
                 }
             }
@@ -58,7 +58,7 @@ class IOC
                             $paramName = $param->getName();
                             if (isset($dependent[$paramName])) {
                                 $paramValue = $dependent[$paramName];
-                                if (class_exists($paramValue) && $param->getClass()) { //
+                                if (is_string($paramValue) && class_exists($paramValue) && $param->getClass()) { //
                                     $paramsArr[] = self::getInstance($paramValue);
                                 } else {
                                     $paramsArr[] = $paramValue;
@@ -78,7 +78,7 @@ class IOC
                 if (count($params) > 0) {
                     foreach ($params as $key => $param) {
                         if ($paramClass = $param->getClass()) {
-                            $paramClassName = $param->getName();
+                            $paramClassName = $paramClass->getName();
                             $paramsArr[] = self::getInstance($paramClassName);
                         }
                     }

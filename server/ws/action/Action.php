@@ -81,6 +81,8 @@ abstract class Action{
         if(isset($params['data'])){
             $this->data = $params['data'];
         }
+        //检查db连接是否断开
+        //todo
     }
 
     /**
@@ -98,15 +100,27 @@ abstract class Action{
     /**
      * @param int $fd
      * @param array $data
-     * 发送消息
+     * 用户发送消息
      */
     public function pushMessage(int $fd,array $data){
         $this->push($fd,$data,self::TYPE_MESSAGE);
     }
 
     /**
+     * @param int $fd
+     * @param array $friendList
+     * 发送用户好友列表
+     */
+    public function pushFriendList(int $fd,array $friendList){
+        $this->push($fd,$friendList,self::TYPE_FRIEND_LIST);
+    }
+
+
+
+
+    /**
      * @param array $data
-     * @param string $type
+     * @param string $type  task任务类型
      * @param int $taskId
      * 投递task任务
      */

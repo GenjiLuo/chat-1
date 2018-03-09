@@ -4,34 +4,37 @@ namespace server\http\controller;
 
 use common\lib\MyRedis;
 use common\model\UserModel;
-use App;
+use core\App;
+use Medoo\Medoo;
 
 class Token extends Controller
 {
     public function update()
     {
-        if (!isset($this->request->post['token'])) {
+        $redis = App::createObject(MyRedis::class);
+        $userModel = App::createObject(UserModel::class);
+        if (!isset($this->request->post['token'])) {  //账号密码登陆
             $username = $this->request->post['username'];
             $password = $this->request->post['password'];
-            $user = UserModel::findOne(['username' => $username, "password" => md5($password)]);
-            if ($user) {
-                $redis = App::createObject(MyRedis::class);
+            $user = $userModel->findOne(['username' => $username, "password" => md5($password)]);
+            if (isset($user)) {
                 // 如果该用户已经登陆在线,获取fd加入待关闭的队列中
-                if($redis->sIsMember("onlineList",$user['id'])){
-                    $fd  = $redis->hGet("userId:userFd" , $user['id'] );
-                    $redis->lPush("closeQueue",$fd);
+                if ($redis->sIsMember("onlineList", $user['id'])) {
+                    $fd = $redis->hGet("userId:userFd", $user['id']);
+                    $redis->lPush("closeQueue", $fd);
                 }
-                $redis->close();
                 $token = md5(time() + rand(1000, 9999));
-                UserModel::update(['access_token' => $token], ['id' => $user['id']]);
+                $redis->set($token, $user["id"]);
+                $redis->close();
                 return ['status' => 1, "token" => $token, "user" => $user];
             } else {
                 return ['status' => 0];
             }
-        } else {
+        } else {  //token登陆
             $token = $this->request->post['token'];
-            $user = UserModel::findOne(['access_token' => $token]);
-            if ($user) {
+            $userId = $redis->get($token);
+            if ($userId) {
+                $user = $userModel->findOne(['id' => $userId]);
                 return ['status' => 1, "token" => $token, "user" => $user];
             } else {
                 return ['status' => 0];

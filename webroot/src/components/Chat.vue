@@ -1,19 +1,39 @@
 <template>
-    <div class="chat">
+    <div class="main">
         <div>
-            <div >
+            <div>
                 <div class="friend-box">
                     <div class="info">
                         <div class="avatar" @click="handleShowEdit">
                             <img :src="info.avatar" title="修改个人信息"/>
                         </div>
-                        <div>
-                            <a @click.prevent="showAddFriend" href="#" title="新增好友"><i class="el-icon-plus" title="新增好友"></i></a>
+                        <div class="action" >
+                            <i class="fa fa-wechat" title="新增好友" v-bind:class="{ active: visible.chatList }"></i>
+                        </div>
+                        <div class="action" v-bind:class="{ active: visible.friendList }">
+                           <i class="fa fa-user-circle" title="新增好友" v-bind:class="{ active: visible.friendList }"></i>
+                        </div>
+                        <div class="action">
+                            <i class="el-icon-message" title="新增好友"></i>
                         </div>
                     </div>
-                    <div class="friend">
+                    <div class="chat-list" v-show="visible.chatList">
                         <div class="head">
-                            <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="昵称"/>
+                            <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="用户名"/>
+                            <span class="el-icon-plus" title="新建聊天群组"></span>
+                        </div>
+                        <div class="list">
+                            <div v-for="friend in filterFriends" :key="friend.id" :title="friend.username" @click="changeChat(friend)" :class="{current: currentChat.id===friend.id }">
+                                <img :src="friend.avatar" :class="{offline:!friend.online}">
+                                <span>{{friend.username}}</span>
+                                <sup class="dot" v-if="friend.getNew===true"></sup>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="friend-list" v-show="visible.friendList">
+                        <div class="head">
+                            <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="用户名"/>
+                            <span class="el-icon-plus" title="新建聊天群组"></span>
                         </div>
                         <div class="list">
                             <div v-for="friend in filterFriends" :key="friend.id" :title="friend.username" @click="changeChat(friend)" :class="{current: currentChat.id===friend.id }">
@@ -25,7 +45,7 @@
                     </div>
                 </div>
             </div>
-            <div >
+            <div>
                 <div class="msg-box">
                     <div class="head">
                         <p>{{currentChat.username}}</p>
@@ -82,7 +102,9 @@
         },
         visible: {
           edit: false,
-          addFriend: false
+          addFriend: false,
+          chatList: true,
+          friendList: false
         },
         friendList: [],
         chats: [],
@@ -116,7 +138,10 @@
       }
     },
     methods: {
+      // 显示新增表单
+      showAddFriend () {
 
+      },
       // 日期格式化
       getNowFormatDate () {
         let date = new Date()
@@ -176,7 +201,7 @@
       },
       // 头像上传成功事件
       handleAvatarSuccess (res, file) {
-        this.info.avatar = res.avatar
+        this.info.avatar = res.url
       },
       // 头像上传验证
       beforeAvatarUpload (file) {
@@ -311,8 +336,198 @@
     $maxHeight : 600px
     $headHeight: 50px
     $imageSize : 40px
-    .item
-        margin: 0px
+    .main
+        margin-top: 100px
+        text-align: center
+        min-width: 1366px
+        &>div
+            margin: 0 auto
+            display: inline-block
+            &>div:first-child
+                width: 260px
+                display: inline-block
+                float: left
+            &>div:nth-child(2)
+                width: 600px
+                display: inline-block
+                vertical-align: top
+    .friend-box
+        border-left: 1px solid #D8DCE5
+        border-top: 1px solid #D8DCE5
+        border-bottom: 1px solid #D8DCE5
+        height: $maxHeight
+        border-right: none
+        .info
+            width: 59px
+            height: 100%
+            display: inline-block
+            float: left
+            a
+                color: #909399
+            div
+                height: 58px
+                line-height: 58px
+                font-size: 20px
+            .avatar
+                height: 58px
+                img
+                    margin: 10px
+                    width: $imageSize
+                    height: $imageSize
+                    cursor: pointer
+                    border-radius: 5px
+            .action
+                color: #909399
+                &:hover
+                    cursor: pointer
+                    background-color: #f5f5f5
+            .active
+                color: #67C23A !important
+        .chat-list
+            background-color: #e7e6e6
+            width: 200px
+            float: right
+            height: 100%
+            display: inline-block
+            .head
+                font-size: 18px
+                text-align: left
+                height: $headHeight
+                border-bottom: 1px solid #D8DCE5
+                .search
+                    margin: 10px 10px
+                    width: 70%
+                span
+                    &:hover
+                        cursor: pointer
+            .list
+                .dot
+                    position: absolute
+                    top: 0px
+                    left: 55px
+                    background-color: #fa5555
+                    border-radius: 10px
+                    color: #fff
+                    display: inline-block
+                    font-size: 12px
+                    height: 8px
+                    width: 8px
+                    text-align: center
+                    white-space: nowrap
+                    border: 1px solid #fff
+                .current
+                    background-color: #c6c5c5
+                overflow: auto
+                height: 530px
+                text-align: left
+                div
+                    position: relative
+                    padding: 5px 0px 5px 15px
+                    height: 40px
+                    line-height: 40px
+                    font-size: 15px
+                    margin: 0
+                    cursor: pointer
+                    img
+                        width: $imageSize
+                        height: $imageSize
+                        border-radius: 5px
+                        vertical-align: top
+                    span
+                        display: inline-block
+                        vertical-align: top
+                        width: 60%
+                        overflow: hidden
+                        text-align: left
+                    &:hover
+                        background-color: #c6c6c6
+                    .offline
+                        filter: grayscale(100%)
+        .friend-list
+            background-color: #e7e6e6
+            width: 200px
+            float: right
+            height: 100%
+            display: inline-block
+            .head
+                font-size: 18px
+                text-align: left
+                height: $headHeight
+                border-bottom: 1px solid #D8DCE5
+                .search
+                    margin: 10px 10px
+                    width: 70%
+                span
+                    &:hover
+                        cursor: pointer
+            .list
+                .dot
+                    position: absolute
+                    top: 0px
+                    left: 55px
+                    background-color: #fa5555
+                    border-radius: 10px
+                    color: #fff
+                    display: inline-block
+                    font-size: 12px
+                    height: 8px
+                    width: 8px
+                    text-align: center
+                    white-space: nowrap
+                    border: 1px solid #fff
+                .current
+                    background-color: #c6c5c5
+                overflow: auto
+                height: 530px
+                text-align: left
+                div
+                    position: relative
+                    padding: 5px 0px 5px 15px
+                    height: 40px
+                    line-height: 40px
+                    font-size: 15px
+                    margin: 0
+                    cursor: pointer
+                    img
+                        width: $imageSize
+                        height: $imageSize
+                        border-radius: 5px
+                        vertical-align: top
+                    span
+                        display: inline-block
+                        vertical-align: top
+                        width: 60%
+                        overflow: hidden
+                        text-align: left
+                    &:hover
+                        background-color: #c6c6c6
+                    .offline
+                        filter: grayscale(100%)
+    .user-content
+        margin-top: -30px
+        height: 500px
+        overflow: auto
+        div
+            padding: 5px
+            height: 40px
+            vertical-align: top
+            text-align: left
+            img
+                width: $imageSize
+                height: $imageSize
+            span
+                display: inline-block
+                line-height: 40px
+                font-size: 20px
+                vertical-align: top
+                padding-left: 10px
+            button
+                vertical-align: top
+                float: right
+                margin-top: 3px
+
+        .item
+            margin: 0px
     .avatar-uploader
         .el-upload
             border: 1px dashed #d9d9d9
@@ -391,123 +606,5 @@
             i
                 &:hover
                     cursor: pointer
-
-    .chat
-        margin-top: 100px
-        text-align: center
-        min-width: 1366px
-        &>div
-            margin: 0 auto
-            display: inline-block
-            &>div:first-child
-                width: 250px
-                display: inline-block
-                float: left
-            &>div:nth-child(2)
-                width: 600px
-                display: inline-block
-                vertical-align: top
-
-    .friend-box
-        border-left: 1px solid #D8DCE5
-        border-top: 1px solid #D8DCE5
-        border-bottom: 1px solid #D8DCE5
-        height: $maxHeight
-        border-right: none
-        .info
-            width: 58px
-            height: 100%
-            display: inline-block
-            float: left
-            div
-                height: 58px
-                line-height: 58px
-                font-size: 20px
-            .avatar
-                height: 58px
-                img
-                    margin: 10px
-                    width: $imageSize
-                    height: $imageSize
-                    cursor: pointer
-                    border-radius: 5px
-
-        .friend
-            background-color: #e7e6e6
-            width: 190px
-            float: right
-            height: 100%
-            display: inline-block
-            .head
-                height: $headHeight
-                border-bottom: 1px solid #D8DCE5
-                .search
-                    margin: 10px 7px
-                    width: 80%
-            .list
-                .dot
-                    position: absolute
-                    top: 0px
-                    left: 55px
-                    background-color: #fa5555
-                    border-radius: 10px
-                    color: #fff
-                    display: inline-block
-                    font-size: 12px
-                    height: 8px
-                    width: 8px
-                    text-align: center
-                    white-space: nowrap
-                    border: 1px solid #fff
-                .current
-                    background-color: #c6c5c5
-                overflow: auto
-                height: 530px
-                div
-                    position: relative
-                    padding: 5px 8px
-                    height: 40px
-                    line-height: 40px
-                    font-size: 15px
-                    margin: 0
-                    cursor: pointer
-                    img
-                        width: $imageSize
-                        height: $imageSize
-                        border-radius: 5px
-                        vertical-align: top
-                    span
-                        display: inline-block
-                        vertical-align: top
-                        width: 60%
-                        overflow: hidden
-                        text-align: left
-                    &:hover
-                        background-color: #c6c6c6
-                    .offline
-                        filter: grayscale(100%)
-
-    .user-content
-        margin-top: -30px
-        height: 500px
-        overflow: auto
-        div
-            padding: 5px
-            height: 40px
-            vertical-align: top
-            text-align: left
-            img
-                width: $imageSize
-                height: $imageSize
-            span
-                display: inline-block
-                line-height: 40px
-                font-size: 20px
-                vertical-align: top
-                padding-left: 10px
-            button
-                vertical-align: top
-                float: right
-                margin-top: 3px
 
 </style>

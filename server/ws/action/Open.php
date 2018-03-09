@@ -1,19 +1,22 @@
 <?php
 namespace server\ws\action;
+use common\lib\MyRedis;
 use common\model\UserModel;
-use App;
+use core\App;
 use common\model\MessageModel;
 
 class Open extends Action {
 
     public function handle()
     {
+        $redis = App::createObject(MyRedis::class);
         $token = $this->request->get['token'];
-        $user = UserModel::findOne(["access_token"=>$token]);
+        $userId = $redis->get($token);
         $fd = $this->request->fd;
-
         $redis = $this->server->redis;
-        if($user){
+        if($userId){
+            $userModel = new UserModel($this->server->db);
+            $user = $userModel->findOne(['id'=>$userId ]);
             // 在线用户列表
             $redis->sAdd("onlineList",$user['id']);
             // 用户id:$fd 关联哈希表
@@ -21,15 +24,15 @@ class Open extends Action {
             // 用户$fd:id 关联哈希表
             $redis->hSet("userFd:userId",$fd,$user['id']);
             // 用户列表
-            $userList = UserModel::findAll(['id[!]'=>$user['id']]);
+
+            $userList = $userModel->findAll(['id[!]'=>$user['id']]);
             foreach ($userList as $key => &$val ){
                 if ($redis->sIsMember('onlineList', $val['id'])) {
-
                     $val['online'] = true;
                 } else {
                     $val['online'] = false;
                 }
-                $msgList = MessageModel::find([
+                $msgList = (new MessageModel($this->server->db))->find([
                         "OR #1" => [
                             "AND #1" => ["from" => $val["id"], "to" => $user['id']],
                             "AND #2" => ["from" => $user['id'], "to" => $val["id"]],
@@ -40,8 +43,7 @@ class Open extends Action {
                 );
                 $val['msgList'] = array_reverse($msgList);
             }
-            $data = ["friends" => $userList];
-            $this->push($fd,$data,self::TYPE_FRIEND_LIST);
+            $this->pushFriendList($fd,["friends" => $userList]);
             // 调用task进程广播用户上线信息
             $this->pushTask(['fd'=>$fd,'user'=>$user],Task::TASK_ONLINE);
         }else{
