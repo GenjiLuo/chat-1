@@ -11,7 +11,6 @@ return [
         'server' => DB_HOST,
         'username' => DB_USER,
         'password' => DB_PWD,
-
         // [optional]
         'charset' => 'utf8',
         'port' => DB_PORT,

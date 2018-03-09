@@ -4,6 +4,12 @@ use common\model\MessageModel;
 use common\model\UserModel;
 use App;
 use Swoole\Mysql;
+
+/**
+ * Class Message
+ * @package server\ws\action
+ * 接受消息处理函数
+ */
 class Message extends Action{
     /**
      * @return mixed|void
