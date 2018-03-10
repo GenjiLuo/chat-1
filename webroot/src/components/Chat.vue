@@ -4,9 +4,19 @@
             <div>
                 <div class="friend-box">
                     <div class="info">
-                        <div class="avatar" @click="handleShowEdit">
-                            <img :src="info.avatar" title="修改个人信息"/>
-                        </div>
+                        <el-dropdown @command="handleCommand">
+                            <span class="el-dropdown-link">
+                                <div class="avatar" >
+                                <img :src="info.avatar">
+                                </div>
+                            </span>
+                            <el-dropdown-menu slot="dropdown">
+                                <el-dropdown-item command="avatar">修改头像</el-dropdown-item>
+                                <el-dropdown-item command="loginOut">注销登陆</el-dropdown-item>
+                            </el-dropdown-menu>
+
+
+                        </el-dropdown>
                         <div class="action" >
                             <i class="fa fa-wechat" title="新增好友" v-bind:class="{ active: visible.chatList }"></i>
                         </div>
@@ -138,6 +148,21 @@
       }
     },
     methods: {
+      // 下拉菜单事件
+      handleCommand (type) {
+        if (type === 'avatar') {
+          this.handleShowEdit()
+        }
+        if (type === 'loginOut') {
+          this.handleLoginOut()
+        }
+      },
+      // 注销登陆
+      handleLoginOut () {
+        this.socket.close()
+        localStorage.setItem('token', '')
+        this.$router.push('/')
+      },
       // 显示新增表单
       showAddFriend () {
 
@@ -221,14 +246,14 @@
         this.socket = new WebSocket(`${ws}?token=${token}`)
         this.socket.onopen = this.onConnect
         this.socket.onmessage = this.onMessage
-        this.socket.close = this.onClose()
+        this.socket.onclose = this.onClose()
       },
       // 链接成功事件
       onConnect (ws) {
-        this.$message.info(`已成功连接到聊天服务器`)
+        this.$message.success(`已成功连接到聊天服务器`)
         this.isConnect = true
       },
-      //
+      // 断开连接触发函数
       onClose () {
         this.isConnect = false
       },
@@ -313,22 +338,42 @@
             break
           // token不正确
           case 'forbidden':
-            localStorage.setItem('token', '')
-            this.$router.push('/')
+            this.handleLoginOut()
             break
+          // 被踢
           case 'repeat':
+            this.socket.close()
             this.$alert('你的账号已在别处登陆', '提示', {
               confirmButtonText: '确定',
               callback: () => {
+                localStorage.setItem('token', '')
                 this.$router.push('/')
               }
             })
+            break
         }
       }
     },
     mounted () {
       this.openConnect()
       this.info = JSON.parse(localStorage.getItem('user'))
+    },
+    watch: {
+      // 断开连接后的提示
+      isConnect: function (newResult, oldResult) {
+        if (newResult === false) {
+          this.$confirm('聊天服务器已断开', '提示', {
+            confirmButtonText: '重新连接',
+            cancelButtonText: '取消',
+            type: 'error'
+          }).then(() => {
+            this.openConnect()
+          }).catch(() => {
+            localStorage.setItem('token', '')
+            this.$router.push('/')
+          })
+        }
+      }
     }
   }
 </script>

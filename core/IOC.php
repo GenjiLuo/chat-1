@@ -3,7 +3,7 @@
 namespace core;
 /**
  * Class IOC
- * @package server
+ * @package core
  * 依赖注入
  */
 class IOC

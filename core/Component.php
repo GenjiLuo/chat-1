@@ -1,4 +1,5 @@
 <?php
+
 namespace core;
 /**
  * Class Component
@@ -15,26 +16,26 @@ class Component
     public function __construct(array $component)
     {
         foreach ($component as $name => $def) {
-            if(is_array($def)){
+            if (is_array($def)) {
                 $className = $def['class'];
                 unset($def['class']);
                 $this->_definition[$name] = $className;
-                IOC::set($className,$def);
+                IOC::set($className, $def);
             }
-            if(is_string($def)){
+            if (is_string($def)) {
                 $className = $def;
                 $this->_definition[$name] = $className;
             }
         }
-
     }
+
     /**
      * @param string $key
      * @return mixed
      */
     public function __get(string $key)
     {
-        if(!isset($this->_container[$key])){
+        if (!isset($this->_container[$key])) {
             $className = $this->_definition[$key];
             $this->_container[$key] = App::createObject($className);
         }
@@ -47,7 +48,7 @@ class Component
      */
     public function get(string $key)
     {
-        if(!isset($this->_container[$key])){
+        if (!isset($this->_container[$key])) {
             $className = $this->_definition[$key];
             $this->_container[$key] = App::createObject($className);
         }
@@ -56,28 +57,34 @@ class Component
 
     /**
      * @param string $name
-     * @param $value
+     * @param $def array/string
      * 动态注册
      */
-    public function set(string $name, $value)
+    public function set(string $name, $def)
     {
         if (isset($this->_container[$name])) {
             unset($this->_container[$name]);
         }
-        $this->_definition[$name] = $value;
+        if (is_array($def)) {
+            $className = $def['class'];
+            unset($def['class']);
+            $this->_definition[$name] = $className;
+            IOC::set($className, $def);
+        }
+        if (is_string($def)) {
+            $className = $def;
+            $this->_definition[$name] = $className;
+        }
     }
 
     /**
      * @param string $name
-     * @param $value
+     * @param $def
      * 动态注册
      */
-    public function __set(string $name, $value)
+    public function __set(string $name, $def)
     {
-        if (isset($this->_container[$name])) {
-            unset($this->_container[$name]);
-        }
-        $this->_definition[$name] = $value;
+        $this->_container[$name] = $def;
     }
 
 }

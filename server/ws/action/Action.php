@@ -115,9 +115,6 @@ abstract class Action{
         $this->push($fd,$friendList,self::TYPE_FRIEND_LIST);
     }
 
-
-
-
     /**
      * @param array $data
      * @param string $type  task任务类型

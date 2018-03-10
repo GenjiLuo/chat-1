@@ -13,6 +13,11 @@ class App{
 
     public static $comp;
 
+    /**
+     * @param ServerInterface $server
+     * @param $dependence
+     * @param $component
+     */
     public static function run(ServerInterface $server,$dependence,$component){
         require_once BASE_ROOT . "/vendor/autoload.php";
         IOC::$dependence = $dependence;
