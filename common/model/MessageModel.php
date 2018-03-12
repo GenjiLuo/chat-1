@@ -28,10 +28,10 @@ class MessageModel extends DB
     }
 
     /**
-     * @param $where
+     * @param array $where
      * @return array|bool
      */
-    public function find($where)
+    public function find(array $where)
     {
         return $this->medoo->select(self::$tableName, "*", $where);
     }

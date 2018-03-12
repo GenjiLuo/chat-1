@@ -127,6 +127,15 @@ abstract class Action{
     }
 
     /**
+     * @param int $fd
+     * @param array $friendList
+     * 发送朋友列表
+     */
+    public function pushFriendList(int $fd,array $friendList){
+        $this->push($fd,$friendList,self::TYPE_FRIEND_LIST);
+    }
+
+    /**
      * @param array $data
      * @param string $type  task任务类型
      * @param int $taskId

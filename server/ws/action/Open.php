@@ -9,11 +9,10 @@ class Open extends Action {
 
     public function handle()
     {
-        $redis = App::createObject(MyRedis::class);
+        $redis = $this->server->redis;
         $token = $this->request->get['token'];
         $userId = $redis->get($token);
         $fd = $this->request->fd;
-        $redis = $this->server->redis;
         if($userId){
             $userModel = new UserModel($this->server->db);
             $user = $userModel->findOne(['id'=>$userId ]);

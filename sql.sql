@@ -86,3 +86,17 @@ CREATE TABLE `user_friend`(
   AUTO_INCREMENT=1
   DEFAULT CHARSET =utf8
   COMMENT '好友表';
+
+DROP table IF EXISTS `friend_apply`;
+create table `friend_apply`(
+  `id` int not NULL AUTO_INCREMENT,
+  `sponsor_id` int not null COMMENT '申请人id',
+  `target_id` int not null  COMMENT '目标id',
+  `created_at` DATETIME not null COMMENT '申请时间',
+  `is_read` TINYINT not null DEFAULT 0 COMMENT '是否已读',
+  `is_agree` TINYINT not NULL DEFAULT 0 COMMENT '是否同意,1是，2否',
+  PRIMARY KEY (`id`),
+  INDEX (`sponsor_id`)
+)ENGINE=innodb
+  AUTO_INCREMENT=1
+  DEFAULT CHARSET=utf8

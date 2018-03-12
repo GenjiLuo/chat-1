@@ -16,8 +16,21 @@ class DB {
 
     public static $tableName ;
 
+    /**
+     * DB constructor.
+     * @param Medoo $medoo
+     */
     public function __construct(Medoo $medoo)
     {
         $this->medoo = $medoo;
+    }
+
+    /**
+     * @param $name
+     * @param $arguments
+     */
+    public function __call($name, $arguments)
+    {
+        call_user_func_array([$this->medoo,$name],$arguments);
     }
 }

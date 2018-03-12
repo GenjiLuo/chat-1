@@ -37,40 +37,71 @@
                     </div>
                     <div class="friend-list" v-show="visible.friendList">
                         <div class="head">
-                            <el-input size="small" v-model="search.friend" class="search"  prefix-icon="el-icon-search" placeholder="用户名"/>
+                            <el-input  size="small" v-model="search.friend" class="search"  prefix-icon="el-icon-search" placeholder="用户名"/>
                             <span class="el-icon-plus" title="新增好友" @click="showAddFriend"></span>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div class="msg-box">
-                    <div class="head">
-                        <p>{{currentChat.username}}</p>
-                    </div>
-                    <div class="content" id="content">
-                        <div  v-for="msg in currentChat.msgList ">
-                            <div v-if="msg.from===currentChat.id" class="others">
-                                <img :src="msg.avatar" />
-                                <span>{{msg.msg}}</span>
+                        <div class="list">
+                            <div>
+                                <img  >
+                                <span>新的朋友</span>
                             </div>
-                            <div style="text-align: right"  v-if="msg.from !== currentChat.id">
-                                <span style="background-color: #9dea6a">{{msg.msg}}</span>
-                                <img :src="msg.avatar" />
+                            <div v-for="friend in friendList" :key="friend.id" :title="friend.username" @click="selectFriend(friend)" :class="{current: currentFriend.id===friend.id }">
+                                <img :src="friend.avatar" >
+                                <span>{{friend.username}}</span>
                             </div>
                         </div>
                     </div>
-                    <div class="tool-list">
-                        <i class="el-icon-picture" title="发送图片"></i>
-                    </div>
-                    <div class="input">
-                        <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="msg"
+                </div>
+            </div>
+            <div class="msg-box" v-show="visible.chatList">
+                <div class="head">
+                    <p>{{currentChat.username}}</p>
+                </div>
+                <div  class="chat-tool">
+                        <div class="content" id="content">
+                            <div  v-for="msg in currentChat.msgList ">
+                                <div v-if="msg.from===currentChat.id" class="others">
+                                    <img :src="msg.avatar" />
+                                    <span>{{msg.msg}}</span>
+                                </div>
+                                <div style="text-align: right"  v-if="msg.from !== currentChat.id">
+                                    <span style="background-color: #9dea6a">{{msg.msg}}</span>
+                                    <img :src="msg.avatar" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tool-list">
+                            <i class="el-icon-picture" title="发送图片"></i>
+                        </div>
+                        <div class="input">
+                            <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="msg"
                                       class="message" resize="none"	>
-                        </el-input>
-                        <el-button class="send" type="primary" @click="handleSendMsg"  >发送</el-button>
+                            </el-input>
+                            <el-button class="send" type="primary" @click="handleSendMsg"  >发送</el-button>
+                        </div>
+                    </div>
+            </div>
+            <div class="friend-info" v-show="visible.friendList">
+                <div v-show="friendList.length > 0">
+                    <div class="title">
+                        <div>
+                            <p>
+                                {{currentFriend.username}}<i class="fa fa-venus" style="color: pink" v-show="currentFriend.sex == 0"></i>
+                                <i class="fa fa-mars" style="color: blue" v-show="currentFriend.sex == 1"></i>
+                            </p>
+                            <p>{{currentFriend.age}}</p>
+                        </div>
+                        <div>
+                            <img :src="currentFriend.avatar"/>
+                        </div>
+                    </div>
+                    <div class="action">
+                        <el-button type="success">发送消息</el-button>
+                        <el-button type="danger">删除好友</el-button>
                     </div>
                 </div>
             </div>
+
         </div>
         <el-dialog title="修改头像" :visible.sync="visible.edit" width="218px" class="dialog">
             <el-upload class="avatar-uploader"
@@ -84,13 +115,13 @@
         </el-dialog>
         <el-dialog :visible.sync="visible.newFriend" width="300px" :show-close="false" custom-class="new-friend" >
             <span slot="title">
-                  <el-input v-model="search.newFriend" auto-complete="off"  size="small" prefix-icon="el-icon-search" placeholder="用户名" />
+                  <el-input @change="handleSearchUser" v-model="search.newFriend" auto-complete="off"  size="small" prefix-icon="el-icon-search" placeholder="用户名" />
             </span>
             <div class="user-box">
                 <div v-for="user in userList">
                     <img :src="user.avatar">
                     <span>{{user.username}}</span>
-                    <el-button size="mini"  class="el-icon-plus" type="primary" plain @click="handleAddFriend(user.id)"/>
+                    <el-button  :disabled="user.can_apply === false " size="mini"  class="el-icon-plus" type="primary" plain @click="handleAddFriend(user)" />
                 </div>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -125,14 +156,21 @@
           friendList: false,
           newFriend: false
         },
+        friendList: [],
         chatList: [],
-        chats: [],
+        userList: [],
         editForm: {
           username: '',
           avatar: ''
         },
+        currentFriend: {
+          id: '',
+          username: '',
+          avatar: '',
+          age: '',
+          sex: ''
+        },
         socket: '',
-        userList: '',
         isConnect: false
       }
     },
@@ -156,15 +194,26 @@
       }
     },
     methods: {
-      // 新增好友
-      handleAddFriend (userId) {
-        this.send({type: 'addFriend', userId: userId})
+      // 选择朋友
+      selectFriend (friend) {
+        this.currentFriend = friend
+      },
+      // 搜索user change改变函数
+      handleSearchUser (value) {
+        this.send({type: 'userList', search: value})
+      },
+      // 新增好友请求
+      handleAddFriend (user) {
+        this.$set(user, 'can_apply', false)
+        this.send({type: 'addFriend', targetId: user.id})
       },
       // 切换界面
       switchInterface (type) {
         if (type === 'friend') {
           this.visible.friendList = true
           this.visible.chatList = false
+          // 获取好友列表
+          this.send({type: 'friendList'})
         }
         if (type === 'chat') {
           this.visible.friendList = false
@@ -356,6 +405,12 @@
           case 'userList':
             this.userList = data.userList
             break
+          case 'friendList':
+            this.friendList = data.friendList
+            if (this.currentFriend.id === '' && this.friendList.length > 0) {
+              this.selectFriend(this.friendList[0])
+            }
+            break
           case 'goOff':
             this.handleGoOff(data)
             break
@@ -421,7 +476,7 @@
                 width: 260px
                 display: inline-block
                 float: left
-            &>div:nth-child(2)
+            &>div:nth-child(n+2)
                 width: 600px
                 display: inline-block
                 vertical-align: top
@@ -535,7 +590,33 @@
                     &:hover
                         cursor: pointer
             .list
+                div:nth-child(1)
+                    border-bottom: 2px solid #DCDFE6
 
+                .current
+                    background-color: #c6c5c5
+                div
+                    text-align: left
+                    position: relative
+                    padding: 5px 0px 5px 15px
+                    height: 40px
+                    line-height: 40px
+                    font-size: 15px
+                    margin: 0
+                    cursor: pointer
+                    img
+                        width: $imageSize
+                        height: $imageSize
+                        border-radius: 5px
+                        vertical-align: top
+                    span
+                        display: inline-block
+                        vertical-align: top
+                        width: 60%
+                        overflow: hidden
+                        text-align: left
+                    &:hover
+                        background-color: #c6c6c6
     .user-content
         margin-top: -30px
         height: 500px
@@ -586,14 +667,24 @@
     .msg-box
         border: 1px solid #D8DCE5
         height: $maxHeight
-        .content
+        .head
             background-color: #f5f5f5
-            overflow: auto
-            height: 340px
-            text-align: left
-            div
-                margin: 10px 10px
-                min-height: 50px
+            height: $headHeight
+            border-bottom: 1px solid #D8DCE5
+            p
+                height: $headHeight
+                line-height: $headHeight
+                margin: 0
+                padding: 0 20px
+        .chat-tool
+            .content
+                background-color: #f5f5f5
+                overflow: auto
+                height: 340px
+                text-align: left
+                div
+                    margin: 10px 10px
+                    min-height: 50px
                 img
                     width: $imageSize
                     height: $imageSize
@@ -613,32 +704,57 @@
                     text-align: left
                     border-radius: 5px
 
-        .input
-            height: 150px
-            padding: 0px 20px 20px 20px
-            .send
-                float: right
-                margin-top: 10px
-                width: 100px
-            .message
-                overflow: auto
-        .head
-            background-color: #f5f5f5
-            height: $headHeight
-            border-bottom: 1px solid #D8DCE5
-            p
-                height: $headHeight
-                line-height: $headHeight
-                margin: 0
-                padding: 0 20px
-        .tool-list
-            border-top: 1px solid #D8DCE5
-            height: 25px
-            text-align: right
-            padding: 5px 30px 5px 0
-            i
-                &:hover
-                    cursor: pointer
+            .input
+                height: 150px
+                padding: 0px 20px 20px 20px
+                .send
+                    float: right
+                    margin-top: 10px
+                    width: 100px
+                .message
+                    overflow: auto
+
+            .tool-list
+                border-top: 1px solid #D8DCE5
+                height: 25px
+                text-align: right
+                padding: 5px 30px 5px 0
+                i
+                    &:hover
+                        cursor: pointer
+    .friend-info
+        border: 1px solid #D8DCE5
+        height: $maxHeight
+        background-color: #f5f5f5
+        >div
+            width: 80%
+            margin: 0 10%
+        .title
+            margin-top: 100px
+            padding-bottom: 30px
+            border-bottom: 1px solid #DCDFE6
+            div:nth-child(1)
+                padding-top: 10px
+                display: inline-block
+                width: 40%
+                vertical-align: top
+                i
+                    margin-left: 5px
+                p
+                    margin-top: 0px
+                    margin-bottom: 5px
+            div:nth-child(2)
+                display: inline-block
+                width: 40%
+                img
+                    width: 70px
+                    height: 70px
+                    border-radius: 10px
+        .action
+            margin-top: 50px
+            button:nth-child(2)
+                margin-left: 100px
+
 
     .new-friend
         .el-dialog__header
@@ -646,22 +762,23 @@
         .user-box
             overflow: auto
             div
-                height: 30px
-                line-height: 30px
+                height: 40px
+                line-height: 40px
                 text-align: left
-                margin: 5px 0 5px
+                margin: 8px 0 5px
                 img
                     border-radius: 5px
-                    height: 30px
-                    width: 30px
+                    height: $imageSize
+                    width: $imageSize
                 span
                     height: 30px
                     display: inline-block
                     vertical-align: top
+                    margin-left: 10px
                 button
                     vertical-align: top
                     float: right
-                    margin-top: 1px
+                    margin-top: 6px
 
 
 
