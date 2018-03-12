@@ -1,6 +1,7 @@
 <?php
 namespace server\ws\action;
 use common\lib\MyRedis;
+use common\model\FriendApplyModel;
 use common\model\UserModel;
 use core\App;
 use common\model\MessageModel;
@@ -17,14 +18,13 @@ class Open extends Action {
             $userModel = new UserModel($this->server->db);
             $user = $userModel->findOne(['id'=>$userId ]);
             // 在线用户列表
-            $redis->sAdd("onlineList",$user['id']);
+            $redis->sAdd("onlineList",$userId);
             // 用户id:$fd 关联哈希表
-            $redis->hSet("userId:userFd",$user['id'],$fd);
+            $redis->hSet("userId:userFd",$userId,$fd);
             // 用户$fd:id 关联哈希表
-            $redis->hSet("userFd:userId",$fd,$user['id']);
+            $redis->hSet("userFd:userId",$fd,$userId);
             // 用户列表
-
-            $userList = $userModel->findAll(['id[!]'=>$user['id']]);
+            $userList = $userModel->findAll(['id[!]'=>$userId]);
             foreach ($userList as $key => &$val ){
                 if ($redis->sIsMember('onlineList', $val['id'])) {
                     $val['online'] = true;
@@ -45,6 +45,10 @@ class Open extends Action {
             $this->pushChatList($fd,["chatList" => $userList]);
             // 调用task进程广播用户上线信息
             $this->pushTask(['fd'=>$fd,'user'=>$user],Task::TASK_ONLINE);
+            // 好友申请列表
+            $applyModel = new FriendApplyModel($this->server->db);
+            $applyList = $applyModel->find(['target_id'=>$userId]);
+            $this->pushApplyList($fd,['applyList'=>$applyList]);
         }else{
             $this->push($fd,[],"forbidden");
         }

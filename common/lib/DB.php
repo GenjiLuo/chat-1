@@ -25,12 +25,4 @@ class DB {
         $this->medoo = $medoo;
     }
 
-    /**
-     * @param $name
-     * @param $arguments
-     */
-    public function __call($name, $arguments)
-    {
-        call_user_func_array([$this->medoo,$name],$arguments);
-    }
 }

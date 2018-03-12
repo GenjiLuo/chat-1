@@ -11,6 +11,15 @@ class FriendApplyModel extends DB {
     public static $tableName = 'friend_apply';
 
     /**
+     * @param $where
+     * @return array|bool
+     */
+    public function find($where){
+        $where['ORDER'] = ['created_at'=>'DESC'];
+        return $this->medoo->select(self::$tableName,"*",$where);
+    }
+
+    /**
      * @param $sponsorId
      * @param $targetId
      * @return bool

@@ -2,6 +2,7 @@
 
 use Swoole\Http\Request;
 use Swoole\Http\Response;
+use common\model\UserModel;
 
 /**
  * 路由设置
@@ -16,7 +17,8 @@ return [
     "/" => \server\http\controller\Test::class,
     "/checkUsername" => function (Request $request, Response $response) {
         $response->header("Content-Type", "application/json;charset=UTF-8");
-        $user = \common\model\UserModel::findOne(["username" => $request->get['username']]);
+        $user = \core\App::createObject(UserModel::class)->findOne(["username" => $request->get['username']]);
+
         if ($user) {
             return json_encode(['status' => 0]);
         } else {
