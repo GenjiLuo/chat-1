@@ -17,7 +17,7 @@ class Token extends Controller
             $username = $this->request->post['username'];
             $password = $this->request->post['password'];
             $user = $userModel->findOne(['username' => $username, "password" => md5($password)]);
-            if (isset($user)) {
+            if ($user) {
                 // 如果该用户已经登陆在线,获取fd加入待关闭的队列中
                 if ($redis->sIsMember("onlineList", $user['id'])) {
                     $fd = $redis->hGet("userId:userFd", $user['id']);

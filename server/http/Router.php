@@ -80,6 +80,7 @@ class Router
         // 动态请求
         if ($callBack = $this->get($path)) {
             if (is_callable($callBack)) {
+                $response->header("Access-Control-Allow-Origin","*");
                 $result = call_user_func($callBack, $request, $response);
             }
             if (is_string($callBack)) {

@@ -1,11 +1,14 @@
 <?php
+
 namespace server\ws\action;
+
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\WebSocket\Frame;
 use Swoole\WebSocket\Server;
 
-abstract class Action{
+abstract class Action
+{
     /**
      * @var Server
      */
@@ -48,7 +51,8 @@ abstract class Action{
     const TYPE_USER_LIST = 'userList';
     const TYPE_CHAT_LIST = 'chatList';
     const TYPE_GO_ONLINE = "goOnline";
-    const TYPE_MESSAGE ="msg";
+    const TYPE_MESSAGE = "msg";
+    const TYPE_APPLY_LIST = "applyList";
 
     /**
      * Action constructor.
@@ -56,31 +60,31 @@ abstract class Action{
      */
     public function __construct(array $params)
     {
-        if(isset($params['server'])){
+        if (isset($params['server'])) {
             $this->server = $params['server'];
         }
-        if(isset($params['frame'])){
+        if (isset($params['frame'])) {
             $this->frame = $params['frame'];
         }
-        if(isset($params['fd'])){
+        if (isset($params['fd'])) {
             $this->fd = $params['fd'];
         }
-        if(isset($params['response'])){
+        if (isset($params['response'])) {
             $this->response = $params['response'];
         }
-        if(isset($params['reactorId'])){
+        if (isset($params['reactorId'])) {
             $this->reactorId = $params['reactorId'];
         }
-        if(isset($params['request'])){
+        if (isset($params['request'])) {
             $this->request = $params['request'];
         }
-        if(isset($params['taskId'])){
+        if (isset($params['taskId'])) {
             $this->taskId = $params['taskId'];
         }
-        if(isset($params['workerId'])){
+        if (isset($params['workerId'])) {
             $this->workerId = $params['workerId'];
         }
-        if(isset($params['data'])){
+        if (isset($params['data'])) {
             $this->data = $params['data'];
         }
         //检查db连接是否断开
@@ -92,10 +96,11 @@ abstract class Action{
      * @param array $data
      * @param string $type
      */
-    public function push(int $fd,array $data,string $type){
-        if($this->server->exist($fd)){
+    public function push(int $fd, array $data, string $type)
+    {
+        if ($this->server->exist($fd)) {
             $data['type'] = $type;
-            $this->server->push($fd,json_encode($data,JSON_UNESCAPED_UNICODE));
+            $this->server->push($fd, json_encode($data, JSON_UNESCAPED_UNICODE));
         }
     }
 
@@ -104,8 +109,9 @@ abstract class Action{
      * @param array $data
      * 用户发送消息
      */
-    public function pushMessage(int $fd,array $data){
-        $this->push($fd,$data,self::TYPE_MESSAGE);
+    public function pushMessage(int $fd, array $data)
+    {
+        $this->push($fd, $data, self::TYPE_MESSAGE);
     }
 
     /**
@@ -113,8 +119,9 @@ abstract class Action{
      * @param array $chatList
      * 发送用户聊天列表
      */
-    public function pushChatList(int $fd,array $chatList){
-        $this->push($fd,$chatList,self::TYPE_CHAT_LIST);
+    public function pushChatList(int $fd, array $chatList)
+    {
+        $this->push($fd, $chatList, self::TYPE_CHAT_LIST);
     }
 
     /**
@@ -122,8 +129,9 @@ abstract class Action{
      * @param array $userList
      * 发送用户列表
      */
-    public function pushUserList(int $fd,array $userList){
-        $this->push($fd,$userList,self::TYPE_USER_LIST);
+    public function pushUserList(int $fd, array $userList)
+    {
+        $this->push($fd, $userList, self::TYPE_USER_LIST);
     }
 
     /**
@@ -131,20 +139,33 @@ abstract class Action{
      * @param array $friendList
      * 发送朋友列表
      */
-    public function pushFriendList(int $fd,array $friendList){
-        $this->push($fd,$friendList,self::TYPE_FRIEND_LIST);
+    public function pushFriendList(int $fd, array $friendList)
+    {
+        $this->push($fd, $friendList, self::TYPE_FRIEND_LIST);
+    }
+
+    /**
+     * @param int $fd
+     * @param array $applyList
+     * 发送好友申请列表
+     */
+    public function pushApplyList(int $fd, array $applyList)
+    {
+        $this->push($fd, $applyList, self::TYPE_APPLY_LIST);
     }
 
     /**
      * @param array $data
-     * @param string $type  task任务类型
+     * @param string $type task任务类型
      * @param int $taskId
      * 投递task任务
      */
-    public function pushTask(array $data,string $type,$taskId = -1){
+    public function pushTask(array $data, string $type, $taskId = -1)
+    {
         $data['type'] = $type;
-        $this->server->task($data,$taskId);
+        $this->server->task($data, $taskId);
     }
+
 
     /**
      * @return mixed
@@ -154,11 +175,13 @@ abstract class Action{
     /**
      * @return bool
      */
-    public function beforeAction(){
+    public function beforeAction()
+    {
         return true;
     }
 
-    public function afterAction(){
+    public function afterAction()
+    {
         //todo
     }
 }

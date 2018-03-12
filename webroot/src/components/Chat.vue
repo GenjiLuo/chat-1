@@ -20,6 +20,7 @@
                         </div>
                         <div class="action" @click="switchInterface('friend')">
                            <i class="fa fa-user-circle" title="好友" v-bind:class="{ active: visible.friendList }" ></i>
+                            <sup class="dot" :v-show="haveNotReadApply"></sup>
                         </div>
                     </div>
                     <div class="chat-list" v-show="visible.chatList">
@@ -42,8 +43,9 @@
                         </div>
                         <div class="list">
                             <div>
-                                <img  >
-                                <span>新的朋友</span>
+                                <img>
+                                <span>好友申请</span>
+                                <sup class="dot" :v-show="haveNotReadApply"></sup>
                             </div>
                             <div v-for="friend in friendList" :key="friend.id" :title="friend.username" @click="selectFriend(friend)" :class="{current: currentFriend.id===friend.id }">
                                 <img :src="friend.avatar" >
@@ -159,6 +161,7 @@
         friendList: [],
         chatList: [],
         userList: [],
+        applyList: [],
         editForm: {
           username: '',
           avatar: ''
@@ -171,7 +174,8 @@
           sex: ''
         },
         socket: '',
-        isConnect: false
+        isConnect: false,
+        haveNotReadApply: false
       }
     },
     updated () {
@@ -435,6 +439,17 @@
               }
             })
             break
+          case 'applyList':
+            this.applyList = data.applyList
+            // 如果有未读的申请
+            for (let index in this.applyList) {
+              if (parseInt(this.applyList[index].is_read) === 0) {
+                this.haveNotReadApply = true
+                break
+              }
+            }
+            console.log(this.haveNotReadApply)
+            break
         }
       }
     },
@@ -507,9 +522,25 @@
                     border-radius: 5px
             .action
                 color: #909399
+                position: relative
+                .dot
+                    position: absolute
+                    top: 15px
+                    left: 15px
+                    background-color: #fa5555
+                    border-radius: 10px
+                    color: #fff
+                    display: inline-block
+                    font-size: 12px
+                    height: 8px
+                    width: 8px
+                    text-align: center
+                    white-space: nowrap
+                    border: 1px solid #fff
                 &:hover
                     cursor: pointer
                     background-color: #f5f5f5
+
             .active
                 color: #67C23A !important
         .chat-list
@@ -590,9 +621,22 @@
                     &:hover
                         cursor: pointer
             .list
+                .dot
+                    position: absolute
+                    top: 2px
+                    left: 12px
+                    background-color: #fa5555
+                    border-radius: 10px
+                    color: #fff
+                    display: inline-block
+                    font-size: 12px
+                    height: 8px
+                    width: 8px
+                    text-align: center
+                    white-space: nowrap
+                    border: 1px solid #fff
                 div:nth-child(1)
                     border-bottom: 2px solid #DCDFE6
-
                 .current
                     background-color: #c6c5c5
                 div
@@ -779,8 +823,5 @@
                     vertical-align: top
                     float: right
                     margin-top: 6px
-
-
-
 
 </style>
