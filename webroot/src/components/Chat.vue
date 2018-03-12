@@ -14,43 +14,31 @@
                                 <el-dropdown-item command="avatar">修改头像</el-dropdown-item>
                                 <el-dropdown-item command="loginOut">注销登陆</el-dropdown-item>
                             </el-dropdown-menu>
-
-
                         </el-dropdown>
-                        <div class="action" >
-                            <i class="fa fa-wechat" title="新增好友" v-bind:class="{ active: visible.chatList }"></i>
+                        <div class="action" @click="switchInterface('chat')">
+                            <i class="fa fa-wechat" title="聊天" v-bind:class="{ active: visible.chatList }" ></i>
                         </div>
-                        <div class="action" v-bind:class="{ active: visible.friendList }">
-                           <i class="fa fa-user-circle" title="新增好友" v-bind:class="{ active: visible.friendList }"></i>
-                        </div>
-                        <div class="action">
-                            <i class="el-icon-message" title="新增好友"></i>
+                        <div class="action" @click="switchInterface('friend')">
+                           <i class="fa fa-user-circle" title="好友" v-bind:class="{ active: visible.friendList }" ></i>
                         </div>
                     </div>
                     <div class="chat-list" v-show="visible.chatList">
                         <div class="head">
-                            <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="用户名"/>
+                            <el-input size="small" v-model="search.chat" class="search"  prefix-icon="el-icon-search" placeholder="用户名"/>
                             <span class="el-icon-plus" title="新建聊天群组"></span>
                         </div>
                         <div class="list">
-                            <div v-for="friend in filterFriends" :key="friend.id" :title="friend.username" @click="changeChat(friend)" :class="{current: currentChat.id===friend.id }">
-                                <img :src="friend.avatar" :class="{offline:!friend.online}">
-                                <span>{{friend.username}}</span>
-                                <sup class="dot" v-if="friend.getNew===true"></sup>
+                            <div v-for="chat in filterChatList" :key="chat.id" :title="chat.username" @click="changeChat(chat)" :class="{current: currentChat.id===chat.id }">
+                                <img :src="chat.avatar" :class="{offline:!chat.online}">
+                                <span>{{chat.username}}</span>
+                                <sup class="dot" v-if="chat.getNew===true"></sup>
                             </div>
                         </div>
                     </div>
                     <div class="friend-list" v-show="visible.friendList">
                         <div class="head">
-                            <el-input size="small" v-model="search" class="search"  prefix-icon="el-icon-search" placeholder="用户名"/>
-                            <span class="el-icon-plus" title="新建聊天群组"></span>
-                        </div>
-                        <div class="list">
-                            <div v-for="friend in filterFriends" :key="friend.id" :title="friend.username" @click="changeChat(friend)" :class="{current: currentChat.id===friend.id }">
-                                <img :src="friend.avatar" :class="{offline:!friend.online}">
-                                <span>{{friend.username}}</span>
-                                <sup class="dot" v-if="friend.getNew===true"></sup>
-                            </div>
+                            <el-input size="small" v-model="search.friend" class="search"  prefix-icon="el-icon-search" placeholder="用户名"/>
+                            <span class="el-icon-plus" title="新增好友" @click="showAddFriend"></span>
                         </div>
                     </div>
                 </div>
@@ -94,6 +82,22 @@
                 <i  class="el-icon-plus avatar-uploader-icon" v-else></i>
             </el-upload>
         </el-dialog>
+        <el-dialog :visible.sync="visible.newFriend" width="300px" :show-close="false" custom-class="new-friend" >
+            <span slot="title">
+                  <el-input v-model="search.newFriend" auto-complete="off"  size="small" prefix-icon="el-icon-search" placeholder="用户名" />
+            </span>
+            <div class="user-box">
+                <div v-for="user in userList">
+                    <img :src="user.avatar">
+                    <span>{{user.username}}</span>
+                    <el-button size="mini"  class="el-icon-plus" type="primary" plain @click="handleAddFriend(user.id)"/>
+                </div>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="visible.newFriend = false">取 消</el-button>
+                <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -103,7 +107,11 @@
       return {
         info: {},
         msg: '',
-        search: '',
+        search: {
+          chat: '',
+          friend: '',
+          newFriend: ''
+        },
         currentChat: {
           username: '',
           msgList: [],
@@ -114,16 +122,16 @@
           edit: false,
           addFriend: false,
           chatList: true,
-          friendList: false
+          friendList: false,
+          newFriend: false
         },
-        friendList: [],
+        chatList: [],
         chats: [],
         editForm: {
           username: '',
           avatar: ''
         },
         socket: '',
-        userSearch: '',
         userList: '',
         isConnect: false
       }
@@ -137,17 +145,32 @@
         let token = localStorage.getItem('token')
         return avatarUrl + '?token=' + token
       },
-      // 朋友搜索
-      filterFriends () {
-        if (this.search !== '') {
-          return this.friendList.filter((element) => {
-            return element.username.indexOf(this.search) !== -1
+      // 聊天搜索
+      filterChatList () {
+        if (this.search.chat !== '') {
+          return this.chatList.filter((element) => {
+            return element.username.indexOf(this.search.chat) !== -1
           })
         }
-        return this.friendList
+        return this.chatList
       }
     },
     methods: {
+      // 新增好友
+      handleAddFriend (userId) {
+        this.send({type: 'addFriend', userId: userId})
+      },
+      // 切换界面
+      switchInterface (type) {
+        if (type === 'friend') {
+          this.visible.friendList = true
+          this.visible.chatList = false
+        }
+        if (type === 'chat') {
+          this.visible.friendList = false
+          this.visible.chatList = true
+        }
+      },
       // 下拉菜单事件
       handleCommand (type) {
         if (type === 'avatar') {
@@ -163,9 +186,10 @@
         localStorage.setItem('token', '')
         this.$router.push('/')
       },
-      // 显示新增表单
+      // 显示新增好友列表
       showAddFriend () {
-
+        this.visible.newFriend = true
+        this.send({type: 'userList', search: this.search.newFriend})
       },
       // 日期格式化
       getNowFormatDate () {
@@ -182,7 +206,9 @@
         }
         return date.getFullYear() + seperator1 + month + seperator1 + strDate + ' ' + date.getHours() + seperator2 + date.getMinutes() + seperator2 + date.getSeconds()
       },
-
+      send (msg) {
+        this.socket.send(JSON.stringify(msg))
+      },
       // 发送消息
       handleSendMsg () {
         if (this.msg === '') {
@@ -282,10 +308,10 @@
         let onlineUser
         // 取出上线用户
         let flag = false
-        for (let [index, { id }] of this.friendList.entries()) {
+        for (let [index, { id }] of this.chatList.entries()) {
           if (parseInt(id) === parseInt(data.user.id)) {
-            this.friendList[index].online = true
-            onlineUser = this.friendList.splice(index, 1)[0]
+            this.chatList[index].online = true
+            onlineUser = this.chatList.splice(index, 1)[0]
             flag = true
             break
           }
@@ -306,10 +332,10 @@
       // 聊天消息接受处理函数
       handleMsg (data) {
         let from = parseInt(data.from)
-        for (let [index, {id}] of this.friendList.entries()) {
+        for (let [index, {id}] of this.chatList.entries()) {
           if (parseInt(id) === from) {
-            this.friendList[index].msgList.push(data)
-            this.$set(this.friendList[index], 'getNew', true)
+            this.chatList[index].msgList.push(data)
+            this.$set(this.chatList[index], 'getNew', true)
             break
           }
         }
@@ -318,14 +344,17 @@
       onMessage (ws) {
         let data = JSON.parse(ws.data)
         switch (data.type) {
-          case 'friendList':
-            this.friendList = data.friends
+          case 'chatList':
+            this.chatList = data.chatList
             // 根据上下线排序
-            this.friendList.sort(function (a, b) {
+            this.chatList.sort(function (a, b) {
               if (a.online === true && b.online === false) return -1
               if (a.online === false && b.online === true) return 1
               return 0
             })
+            break
+          case 'userList':
+            this.userList = data.userList
             break
           case 'goOff':
             this.handleGoOff(data)
@@ -506,48 +535,7 @@
                     &:hover
                         cursor: pointer
             .list
-                .dot
-                    position: absolute
-                    top: 0px
-                    left: 55px
-                    background-color: #fa5555
-                    border-radius: 10px
-                    color: #fff
-                    display: inline-block
-                    font-size: 12px
-                    height: 8px
-                    width: 8px
-                    text-align: center
-                    white-space: nowrap
-                    border: 1px solid #fff
-                .current
-                    background-color: #c6c5c5
-                overflow: auto
-                height: 530px
-                text-align: left
-                div
-                    position: relative
-                    padding: 5px 0px 5px 15px
-                    height: 40px
-                    line-height: 40px
-                    font-size: 15px
-                    margin: 0
-                    cursor: pointer
-                    img
-                        width: $imageSize
-                        height: $imageSize
-                        border-radius: 5px
-                        vertical-align: top
-                    span
-                        display: inline-block
-                        vertical-align: top
-                        width: 60%
-                        overflow: hidden
-                        text-align: left
-                    &:hover
-                        background-color: #c6c6c6
-                    .offline
-                        filter: grayscale(100%)
+
     .user-content
         margin-top: -30px
         height: 500px
@@ -651,5 +639,31 @@
             i
                 &:hover
                     cursor: pointer
+
+    .new-friend
+        .el-dialog__header
+            padding-top: 0px
+        .user-box
+            overflow: auto
+            div
+                height: 30px
+                line-height: 30px
+                text-align: left
+                margin: 5px 0 5px
+                img
+                    border-radius: 5px
+                    height: 30px
+                    width: 30px
+                span
+                    height: 30px
+                    display: inline-block
+                    vertical-align: top
+                button
+                    vertical-align: top
+                    float: right
+                    margin-top: 1px
+
+
+
 
 </style>

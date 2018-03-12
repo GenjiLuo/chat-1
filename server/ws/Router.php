@@ -30,7 +30,11 @@ class Router{
         $action = $this->map[$type];
         $action  = new $action($param);
         if ($action instanceof Action){
-            $action->handle();
+            if($action->beforeAction()){
+                $action->handle();
+                $action->afterAction();
+            }
+
         }
     }
 

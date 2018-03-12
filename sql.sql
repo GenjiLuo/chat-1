@@ -39,8 +39,8 @@ CREATE TABLE `user` (
 -- ----------------------------
 -- Table structure for friend
 -- ----------------------------
-DROP TABLE  IF EXISTS `user_to_friend`;
-CREATE TABLE `user_to_friend`(
+DROP TABLE  IF EXISTS `user_chat_list`;
+CREATE TABLE `user_chat_list`(
   `id` int(11) not null AUTO_INCREMENT,
   `user_id` INT(11) NOT NULL COMMENT '用户id',
   `friend_id` INT(11) NOT NULL COMMENT '好友Id或群组id',
@@ -68,3 +68,21 @@ CREATE TABLE `group`(
  AUTO_INCREMENT=1
  DEFAULT CHARSET=utf8
  COMMENT '群组表';
+
+-- ----------------------------
+-- Table structure for user_friend
+-- ----------------------------
+DROP TABLE if EXISTS `user_friend`;
+CREATE TABLE `user_friend`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NOT NULL ,
+  `friend_id` INT NOT NULL ,
+  `add_time` DATETIME NOT NULL,
+  `sponsor_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX (`user_id`),
+  INDEX (`friend_id`)
+) ENGINE =innodb
+  AUTO_INCREMENT=1
+  DEFAULT CHARSET =utf8
+  COMMENT '好友表';

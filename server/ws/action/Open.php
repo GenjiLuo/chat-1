@@ -43,7 +43,7 @@ class Open extends Action {
                 );
                 $val['msgList'] = array_reverse($msgList);
             }
-            $this->pushFriendList($fd,["friends" => $userList]);
+            $this->pushChatList($fd,["chatList" => $userList]);
             // 调用task进程广播用户上线信息
             $this->pushTask(['fd'=>$fd,'user'=>$user],Task::TASK_ONLINE);
         }else{

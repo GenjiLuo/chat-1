@@ -45,6 +45,8 @@ abstract class Action{
     public $data;
 
     const TYPE_FRIEND_LIST = "friendList";
+    const TYPE_USER_LIST = 'userList';
+    const TYPE_CHAT_LIST = 'chatList';
     const TYPE_GO_ONLINE = "goOnline";
     const TYPE_MESSAGE ="msg";
 
@@ -108,11 +110,20 @@ abstract class Action{
 
     /**
      * @param int $fd
-     * @param array $friendList
-     * 发送用户好友列表
+     * @param array $chatList
+     * 发送用户聊天列表
      */
-    public function pushFriendList(int $fd,array $friendList){
-        $this->push($fd,$friendList,self::TYPE_FRIEND_LIST);
+    public function pushChatList(int $fd,array $chatList){
+        $this->push($fd,$chatList,self::TYPE_CHAT_LIST);
+    }
+
+    /**
+     * @param int $fd
+     * @param array $userList
+     * 发送用户列表
+     */
+    public function pushUserList(int $fd,array $userList){
+        $this->push($fd,$userList,self::TYPE_USER_LIST);
     }
 
     /**
@@ -131,4 +142,14 @@ abstract class Action{
      */
     abstract function handle();
 
+    /**
+     * @return bool
+     */
+    public function beforeAction(){
+        return true;
+    }
+
+    public function afterAction(){
+        //todo
+    }
 }

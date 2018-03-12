@@ -6,5 +6,5 @@ use common\lib\DB;
 
 class UserFriendModel extends DB
 {
-    public static $tableName = "user_to_friend";
+    public static $tableName = "user_friend";
 }
