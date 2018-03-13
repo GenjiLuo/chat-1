@@ -39,4 +39,26 @@ class UserFriendModel extends DB
         }
         return $result;
     }
+
+    /**
+     * @param $sponsorId
+     * @param $targetId
+     * @return bool
+     */
+    public function add($sponsorId,$targetId){
+        $date = date("Y-m-d H:i:s");
+        $dataOne = [
+            'user_id'=>$sponsorId,
+            'friend_id'=>$targetId,
+            'sponsor_id'=>$sponsorId,
+            'add_time'=>$date
+        ];
+        $dataTwo = [
+            'user_id'=>$targetId,
+            'friend_id'=>$sponsorId,
+            'sponsor_id'=>$sponsorId,
+            'add_time'=>$date
+        ];
+        return $this->medoo->insert(self::$tableName,$dataOne) && $this->medoo->insert(self::$tableName,$dataTwo);
+    }
 }

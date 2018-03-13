@@ -39,16 +39,16 @@ CREATE TABLE `user` (
 -- ----------------------------
 -- Table structure for friend
 -- ----------------------------
-DROP TABLE  IF EXISTS `user_chat_list`;
-CREATE TABLE `user_chat_list`(
-  `id` int(11) not null AUTO_INCREMENT,
+DROP TABLE  IF EXISTS `chat`;
+CREATE TABLE `chat`(
+  `chat_id` int(11) not null AUTO_INCREMENT,
   `user_id` INT(11) NOT NULL COMMENT '用户id',
-  `friend_id` INT(11) NOT NULL COMMENT '好友Id或群组id',
+  `target_id` INT(11) NOT NULL COMMENT '好友Id或群组id',
   `type` TINYINT NOT NULL null DEFAULT 0 COMMENT '类型，0好友，1群组',
-  `last_message_time` DATETIME DEFAULT NULL COMMENT '最后消息时间',
-  PRIMARY KEY (`id`),
+  `last_chat_time` DATETIME DEFAULT NULL COMMENT '最后消息时间',
+  PRIMARY KEY (`chat_id`),
   INDEX (`user_id`),
-  INDEX (`friend_id`)
+  INDEX (`target_id`)
 )ENGINE =Innodb
  AUTO_INCREMENT=1
  DEFAULT CHARSET=utf8
@@ -87,6 +87,10 @@ CREATE TABLE `user_friend`(
   DEFAULT CHARSET =utf8
   COMMENT '好友表';
 
+
+-- ----------------------------
+-- Table structure for friend_apply
+-- ----------------------------
 DROP table IF EXISTS `friend_apply`;
 create table `friend_apply`(
   `id` int not NULL AUTO_INCREMENT,
@@ -94,7 +98,7 @@ create table `friend_apply`(
   `target_id` int not null  COMMENT '目标id',
   `created_at` DATETIME not null COMMENT '申请时间',
   `is_read` TINYINT not null DEFAULT 0 COMMENT '是否已读',
-  `is_agree` TINYINT not NULL DEFAULT 0 COMMENT '是否同意,1是，2否',
+  `status` TINYINT not NULL DEFAULT 0 COMMENT '状态',
   PRIMARY KEY (`id`),
   INDEX (`sponsor_id`)
 )ENGINE=innodb

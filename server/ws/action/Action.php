@@ -53,6 +53,8 @@ abstract class Action
     const TYPE_GO_ONLINE = "goOnline";
     const TYPE_MESSAGE = "msg";
     const TYPE_APPLY_LIST = "applyList";
+    const TYPE_APPLY_SUCC = 'applySucc';
+    const TYPE_AGREE_SUCC = 'agreeSucc';
 
     /**
      * Action constructor.
@@ -155,6 +157,24 @@ abstract class Action
     }
 
     /**
+     * @param int $fd
+     * @param array $data
+     * 申请好友成功
+     */
+    public function pushApplySucc(int $fd,array $data){
+        $this->push($fd,$data,self::TYPE_APPLY_SUCC);
+    }
+
+    /**
+     * @param int $fd
+     * @param array $data
+     * 同意好友申请成功
+     */
+    public function pushAgreeSucc(int $fd,array $data){
+        $this->push($fd,$data,self::TYPE_AGREE_SUCC);
+    }
+
+    /**
      * @param array $data
      * @param string $type task任务类型
      * @param int $taskId
@@ -165,6 +185,8 @@ abstract class Action
         $data['type'] = $type;
         $this->server->task($data, $taskId);
     }
+
+
 
 
     /**

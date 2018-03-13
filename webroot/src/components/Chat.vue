@@ -20,7 +20,7 @@
                         </div>
                         <div class="action" @click="switchInterface('friend')">
                            <i class="fa fa-user-circle" title="好友" v-bind:class="{ active: visible.friendList }" ></i>
-                            <sup class="dot" :v-show="haveNotReadApply"></sup>
+                            <sup class="dot" v-show="haveNotReadApply"></sup>
                         </div>
                     </div>
                     <div class="chat-list" v-show="visible.chatList">
@@ -42,10 +42,10 @@
                             <span class="el-icon-plus" title="新增好友" @click="showAddFriend"></span>
                         </div>
                         <div class="list">
-                            <div>
-                                <img>
+                            <div @click="showApplyList">
+                                <img src="../assets/add.png">
                                 <span>好友申请</span>
-                                <sup class="dot" :v-show="haveNotReadApply"></sup>
+                                <sup class="dot" v-show="haveNotReadApply"></sup>
                             </div>
                             <div v-for="friend in friendList" :key="friend.id" :title="friend.username" @click="selectFriend(friend)" :class="{current: currentFriend.id===friend.id }">
                                 <img :src="friend.avatar" >
@@ -98,7 +98,7 @@
                         </div>
                     </div>
                     <div class="action">
-                        <el-button type="success">发送消息</el-button>
+                        <el-button type="success" @click="handleChat(currentFriend.id)">发送消息</el-button>
                         <el-button type="danger">删除好友</el-button>
                     </div>
                 </div>
@@ -115,9 +115,12 @@
                 <i  class="el-icon-plus avatar-uploader-icon" v-else></i>
             </el-upload>
         </el-dialog>
+        <!--用户搜索申请 start-->
         <el-dialog :visible.sync="visible.newFriend" width="300px" :show-close="false" custom-class="new-friend" >
             <span slot="title">
-                  <el-input @change="handleSearchUser" v-model="search.newFriend" auto-complete="off"  size="small" prefix-icon="el-icon-search" placeholder="用户名" />
+               <el-input placeholder="请输入内容" v-model.trim="search.newFriend" class="input-with-select" size="small">
+                    <el-button slot="append" icon="el-icon-search"  size="mini" @click="handleSearchUser"/>
+               </el-input>
             </span>
             <div class="user-box">
                 <div v-for="user in userList">
@@ -131,6 +134,28 @@
                 <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
             </span>
         </el-dialog>
+        <!--用户搜索申请 end-->
+
+        <!--好友申请列表 start-->
+        <el-dialog :visible.sync="visible.applyList" width="300px" :show-close="false" custom-class="new-friend" >
+            <span slot="title">
+                  <el-input  v-model.trim="search.applyList" auto-complete="off"  size="small" prefix-icon="el-icon-search" placeholder="用户名" />
+            </span>
+            <div class="user-box">
+                <div v-for="apply in filterApplyList">
+                    <img :src="apply.avatar">
+                    <span>{{apply.username}}</span>
+                    <el-button  @click='handleReject(apply)' size="mini" class="el-icon-error" type="danger" plain v-show="parseInt(apply.status)===0" />
+                    <el-button  @click='handleAgree(apply)' size="mini" class="el-icon-success"  type="primary" plain v-show="parseInt(apply.status)===0" />
+                    <el-button  :disabled="parseInt(apply.status) === 1 " size="mini"   type="primary" plain  v-show="parseInt(apply.status)===1">已同意</el-button>
+                    <el-button  :disabled="parseInt(apply.status) === 2 " size="mini"   type="danger" plain  v-show="parseInt(apply.status)===2">已拒绝</el-button>
+                </div>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="visible.applyList = false">取 消</el-button>
+            </span>
+        </el-dialog>
+        <!--好友申请列表 end-->
     </div>
 </template>
 <script>
@@ -138,14 +163,15 @@
   export default {
     data () {
       return {
-        info: {},
-        msg: '',
-        search: {
+        info: {}, // 个人信息
+        msg: '',  // 聊天输入框
+        search: { // 相关search
           chat: '',
           friend: '',
-          newFriend: ''
+          newFriend: '',
+          applyList: ''
         },
-        currentChat: {
+        currentChat: {  // 当前聊天对象
           username: '',
           msgList: [],
           id: '',
@@ -156,17 +182,18 @@
           addFriend: false,
           chatList: true,
           friendList: false,
-          newFriend: false
+          newFriend: false,
+          applyList: false
         },
-        friendList: [],
-        chatList: [],
-        userList: [],
-        applyList: [],
+        friendList: [], // 好友列表
+        chatList: [],  // 聊天列表
+        userList: [],  // 用户列表
+        applyList: [], // 好友申请列表
         editForm: {
           username: '',
           avatar: ''
         },
-        currentFriend: {
+        currentFriend: { // 当前好友
           id: '',
           username: '',
           avatar: '',
@@ -179,6 +206,7 @@
       }
     },
     updated () {
+      // 消息框移到最底部
       let content = document.getElementById('content')
       content.scrollTop = content.scrollHeight
     },
@@ -195,21 +223,55 @@
           })
         }
         return this.chatList
+      },
+      filterApplyList () {
+        if (this.search.applyList !== '') {
+          return this.applyList.filter((element) => {
+            return element.username.indexOf(this.search.applyList) !== -1
+          })
+        }
+        return this.applyList
       }
     },
     methods: {
+      // 朋友详情也点击`发送消息`触发事件
+      handleChat (friendId) {
+        // 发送创建聊天请求
+        this.send({type: 'createChat', targetId: friendId})
+      },
+      // 同意好友申请
+      handleAgree (apply) {
+        this.send({type: 'agree', applyId: apply.id}).then(() => {
+          apply.status = 1
+        })
+      },
+      // 拒绝好友申请
+      handleReject (apply) {
+        this.send({type: 'reject', applyId: apply.id}).then(() => {
+          apply.status = 2
+        })
+      },
+      // 显示好友申请列表
+      showApplyList () {
+        this.visible.applyList = true
+        // 发送好友申请已读
+        this.send({type: 'applyRead'}).then(() => {
+          this.haveNotReadApply = false
+        })
+      },
       // 选择朋友
       selectFriend (friend) {
         this.currentFriend = friend
       },
-      // 搜索user change改变函数
-      handleSearchUser (value) {
-        this.send({type: 'userList', search: value})
+      // 搜索user函数
+      handleSearchUser () {
+        this.send({type: 'userList', search: this.search.newFriend})
       },
       // 新增好友请求
       handleAddFriend (user) {
-        this.$set(user, 'can_apply', false)
-        this.send({type: 'addFriend', targetId: user.id})
+        this.send({type: 'addFriend', targetId: user.id}).then(() => {
+          this.$set(user, 'can_apply', false)
+        })
       },
       // 切换界面
       switchInterface (type) {
@@ -259,8 +321,15 @@
         }
         return date.getFullYear() + seperator1 + month + seperator1 + strDate + ' ' + date.getHours() + seperator2 + date.getMinutes() + seperator2 + date.getSeconds()
       },
+      // websock发送消息
       send (msg) {
-        this.socket.send(JSON.stringify(msg))
+        return new Promise((resolve, reject) => {
+          if (this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify(msg))
+            resolve()
+          }
+          reject(new Error('websocket连接已断开'))
+        })
       },
       // 发送消息
       handleSendMsg () {
@@ -325,7 +394,7 @@
         this.socket = new WebSocket(`${ws}?token=${token}`)
         this.socket.onopen = this.onConnect
         this.socket.onmessage = this.onMessage
-        this.socket.onclose = this.onClose()
+        this.socket.onclose = this.onClose
       },
       // 链接成功事件
       onConnect (ws) {
@@ -439,6 +508,7 @@
               }
             })
             break
+          // 好友申请列表
           case 'applyList':
             this.applyList = data.applyList
             // 如果有未读的申请
@@ -448,8 +518,16 @@
                 break
               }
             }
-            console.log(this.haveNotReadApply)
             break
+          // 同意好友申请
+          case 'agreeSucc':
+            this.send({type: 'friendList'}) // 重新获取好友列表
+            this.$message.success('"' + data.friend.username + '"已经成为你的好友')
+            break
+          // 好友申请被同意
+          case 'applySucc':
+            this.send({type: 'friendList'}) // 重新获取好友列表
+            this.$message.success('"' + data.friend.username + '"已经同意你的好友申请')
         }
       }
     },
@@ -798,11 +876,9 @@
             margin-top: 50px
             button:nth-child(2)
                 margin-left: 100px
-
-
     .new-friend
-        .el-dialog__header
-            padding-top: 0px
+        input
+            width: 200px
         .user-box
             overflow: auto
             div
@@ -823,5 +899,6 @@
                     vertical-align: top
                     float: right
                     margin-top: 6px
+                    margin-left: 10px
 
 </style>

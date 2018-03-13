@@ -1,5 +1,6 @@
 <?php
 namespace server\ws\action;
+use common\model\ChatModel;
 use common\model\FriendApplyModel;
 use common\model\MessageModel;
 use common\model\UserFriendModel;
@@ -18,21 +19,8 @@ class Message extends Action{
     public function handle()
     {
         $data = json_decode($this->frame->data, true);
-
-        switch ($data['type']){
-            case 'msg':
-                $this->msg($data);
-                break;
-            case  'userList':
-                $this->useList($data);
-                break;
-            case 'addFriend':
-                $this->addFriend($data);
-                break;
-            case 'friendList':
-                $this->friendList($data);
-                break;
-        }
+        $type = $data['type'];
+        $this->$type($data);
     }
 
     /**
@@ -62,7 +50,7 @@ class Message extends Action{
      * @param $data
      * 获取用户列表
      */
-    private function useList($data){
+    private function userList($data){
         $userModel = new UserModel($this->server->db);
         $userId = $this->server->redis->hGet("userFd:userId",$this->frame->fd);
         $userList = $userModel->findAll(
@@ -77,12 +65,12 @@ class Message extends Action{
         foreach ($userList as $key => &$user) {
             //检查是否已经是朋友
             if($friendModel->isFriend($userId,$user['id'])){
-                $user['can_apply'] =false;
+                $user['can_apply'] = false;
                 continue;
             }
             //检查是否申请中
             if($applyModel->isApplying($userId,$user['id'])){
-                $user['can_apply'] =false;
+                $user['can_apply'] = false;
             }
         }
         $this->pushUserList($this->frame->fd,['userList'=>$userList]);
@@ -100,13 +88,64 @@ class Message extends Action{
     }
 
     /**
-     * @param $data
+     * 好友列表
      */
     private function friendList($data){
         $userId = $this->server->redis->hGet("userFd:userId",$this->frame->fd);
         $model = new UserFriendModel($this->server->db);
         $friendList = $model->find($userId);
         $this->pushFriendList($this->frame->fd,["friendList"=>$friendList]);
+    }
+
+    /**
+     *  好友申请标记已读
+     */
+    private function applyRead($data){
+        $userId = $this->server->redis->hGet("userFd:userId",$this->frame->fd);
+        $model = new FriendApplyModel($this->server->db);
+        $model->handleRead($userId);
+    }
+
+    /**
+     * @param $data
+     * 拒绝好友申请
+     */
+    private function reject($data){
+        $applyId = $data['applyId'];
+        $model = new FriendApplyModel($this->server->db);
+        $model->reject($applyId);
+    }
+
+    /**
+     * @param $data
+     * @throws \Exception
+     * 同意好友申请
+     */
+    private function agree($data){
+        $applyId = $data['applyId'];
+        $model = new FriendApplyModel($this->server->db);
+        if($apply = $model->agree($applyId)){
+            $userModel = new UserModel($this->server->db);
+            $target = $userModel->findOne(['id'=>$apply['target_id']]);
+            $sponsor = $userModel->findOne(['id'=>$apply['sponsor_id']]);
+            $this->pushAgreeSucc($this->frame->fd,['friend'=>$sponsor,'applyId'=>$applyId]);
+            $redis = $this->server->redis;
+            if($redis->sIsMember("onlineList", $sponsor['id'])){ //如果申请人在线
+                $sponsorFd = $redis->hGet('userId:userF',$sponsor['id']);
+                $this->pushApplySucc($sponsorFd,['friend'=>$target,'applyId'=>$applyId]);
+            }
+        }
+    }
+
+    /**
+     * @param $data
+     * 创建普通聊天
+     */
+    private function createChat($data){
+        $targetId = $data['targetId'];
+        $userId = $this->server->redis->hGet("userFd:userId",$this->frame->fd);
+        $chatModel = new ChatModel($this->server->db);
+        $chatModel->add($userId,$targetId);
     }
 
 }

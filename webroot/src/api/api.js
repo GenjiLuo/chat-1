@@ -1,8 +1,8 @@
 import axios from 'axios'
 import qs from 'qs'
 
-const base = 'http://192.168.2.238:8081'
-export const ws = 'ws://192.168.2.238:9501'
+const base = 'http://127.0.0.1:8081'
+export const ws = 'ws://127.0.0.1:9501'
 axios.interceptors.request.use(
   config => {
     config.headers = {
