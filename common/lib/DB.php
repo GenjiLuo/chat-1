@@ -25,4 +25,34 @@ class DB {
         $this->medoo = $medoo;
     }
 
+    /**
+     * @param $where
+     * @param $fields
+     * @return mixed
+     */
+    public function selectOne($where,$fields = '*'){
+        $class = get_called_class();
+        $result = $this->medoo->select($class::$tableName,$fields,$where);
+        return $result ? $result[0] :[] ;
+    }
+
+    /**
+     * @param $data
+     * @return bool|\PDOStatement
+     */
+    public function insert($data){
+        $class = get_called_class();
+        return $this->medoo->insert($class::$tableName,$data);
+    }
+
+    /**
+     * @param $data
+     * @param $where
+     * @return bool|\PDOStatement
+     */
+    public function update($data,$where){
+        $class = get_called_class();
+        return $this->medoo->update($class::$tableName,$data,$where);
+    }
+
 }

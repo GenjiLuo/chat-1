@@ -55,6 +55,7 @@ abstract class Action
     const TYPE_APPLY_LIST = "applyList";
     const TYPE_APPLY_SUCC = 'applySucc';
     const TYPE_AGREE_SUCC = 'agreeSucc';
+    const TYPE_NEW_CHAT = 'newChat';
 
     /**
      * Action constructor.
@@ -172,6 +173,16 @@ abstract class Action
      */
     public function pushAgreeSucc(int $fd,array $data){
         $this->push($fd,$data,self::TYPE_AGREE_SUCC);
+    }
+
+
+    /**
+     * @param int $fd
+     * @param array $data
+     * 新建聊天
+     */
+    public function pushNewChat(int $fd,array $data){
+        $this->push($fd,$data,self::TYPE_NEW_CHAT);
     }
 
     /**

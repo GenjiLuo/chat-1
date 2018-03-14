@@ -15,21 +15,41 @@ class ChatModel extends DB
     const TYPE_GROUP = 1;
     const TYPE_FRIEND = 0;
 
+    /**
+     * @param $userId
+     * @return array|bool
+     */
     public function findAll($userId)
     {
         $where = [
             'user_id' => $userId,
-            'ORDER'=>['last_chat_time'=>'DESC']
+            'ORDER' => ['last_chat_time' => 'DESC']
         ];
         $join = [
             "[>]" . UserModel::$tableName => ['target_id' => 'id']
         ];
-        $fields = ['chat_id','user.id', 'last_chat_time', 'user.avatar', 'user.username', 'user.age', 'user.sex'];
+        $fields = ['chat_id', 'user.id', 'last_chat_time', 'user.avatar', 'user.username', 'user.age', 'user.sex'];
         $result = $this->medoo->select(self::$tableName, $join, $fields, $where);
         foreach ($result as $key => &$chat) {
             $chat['msgList'] = []; //todo
             $chat['avatar'] = BASE_URL . UserModel::$defaultPath . $chat['avatar'];
         }
+        return $result;
+    }
+
+    /**
+     * @param $where
+     * @param array $fields
+     * @return mixed
+     */
+    public function findOne($where,$fields = ['chat_id', 'user.id', 'last_chat_time', 'user.avatar', 'user.username', 'user.age', 'user.sex'])
+    {
+        $join = [
+            "[>]" . UserModel::$tableName => ['target_id' => 'id']
+        ];
+        $result = $this->medoo->select(self::$tableName, $join, $fields, $where)[0];
+        $result['msgList'] = []; //todo
+        $result['avatar'] = BASE_URL . UserModel::$defaultPath . $result['avatar'];
         return $result;
     }
 
@@ -50,16 +70,7 @@ class ChatModel extends DB
                 'last_chat_time' => $date
             ];
             $this->medoo->insert(self::$tableName, $data);
-            if (!$this->isExist($targetId, $userId)) {
-                $dataReverse = [
-                    'user_id' => $targetId,
-                    'target_id' => $userId,
-                    'type' => self::TYPE_FRIEND,
-                    'last_chat_time' => $date
-                ];
-                $this->medoo->insert(self::$tableName, $dataReverse);
-            }
-            return true;
+            return  $this->medoo->id();
         }
         return false;
     }

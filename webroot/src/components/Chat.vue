@@ -62,13 +62,13 @@
                 <div  class="chat-tool">
                         <div class="content" id="content">
                             <div  v-for="msg in currentChat.msgList ">
-                                <div v-if="msg.from===currentChat.id" class="others">
-                                    <img :src="msg.avatar" />
+                                <div v-if="msg.from_id !== info.id" class="others">
+                                    <img :src="currentChat.avatar" />
                                     <span>{{msg.msg}}</span>
                                 </div>
-                                <div style="text-align: right"  v-if="msg.from !== currentChat.id">
+                                <div style="text-align: right"  v-if="msg.from_id === info.id">
                                     <span style="background-color: #9dea6a">{{msg.msg}}</span>
-                                    <img :src="msg.avatar" />
+                                    <img :src="info.avatar" />
                                 </div>
                             </div>
                         </div>
@@ -172,10 +172,6 @@
           applyList: ''
         },
         currentChat: {  // 当前聊天对象
-          username: '',
-          msgList: [],
-          id: '',
-          avatar: ''
         },
         visible: {
           edit: false,
@@ -224,6 +220,7 @@
         }
         return this.chatList
       },
+      // 好友申请搜索
       filterApplyList () {
         if (this.search.applyList !== '') {
           return this.applyList.filter((element) => {
@@ -234,10 +231,22 @@
       }
     },
     methods: {
-      // 朋友详情也点击`发送消息`触发事件
+      // 朋友详情栏点击`发送消息`触发事件
       handleChat (friendId) {
-        // 发送创建聊天请求
-        this.send({type: 'createChat', targetId: friendId})
+        let exist = false
+        for (let [index, {id}] of this.chatList.entries()) {
+          if (parseInt(id) === parseInt(friendId)) {
+            const chat = this.chatList[index]
+            exist = true
+            this.switchInterface('chat')  // 切换到聊天界面
+            this.changeChat(chat)    // 将当前聊天对象切换成该聊天
+            break
+          }
+        }
+        // 如果聊天不存在,发送创建聊天请求
+        if (!exist) {
+          this.send({type: 'createChat', targetId: friendId})
+        }
       },
       // 同意好友申请
       handleAgree (apply) {
@@ -286,7 +295,7 @@
           this.visible.chatList = true
         }
       },
-      // 下拉菜单事件
+      // 头像下拉菜单事件
       handleCommand (type) {
         if (type === 'avatar') {
           this.handleShowEdit()
@@ -306,22 +315,7 @@
         this.visible.newFriend = true
         this.send({type: 'userList', search: this.search.newFriend})
       },
-      // 日期格式化
-      getNowFormatDate () {
-        let date = new Date()
-        let seperator1 = '-'
-        let seperator2 = ':'
-        let month = date.getMonth() + 1
-        let strDate = date.getDate()
-        if (month >= 1 && month <= 9) {
-          month = '0' + month
-        }
-        if (strDate >= 0 && strDate <= 9) {
-          strDate = '0' + strDate
-        }
-        return date.getFullYear() + seperator1 + month + seperator1 + strDate + ' ' + date.getHours() + seperator2 + date.getMinutes() + seperator2 + date.getSeconds()
-      },
-      // websock发送消息
+      // webSocket发送消息
       send (msg) {
         return new Promise((resolve, reject) => {
           if (this.socket.readyState === WebSocket.OPEN) {
@@ -331,7 +325,7 @@
           reject(new Error('websocket连接已断开'))
         })
       },
-      // 发送消息
+      // 发送聊天消息
       handleSendMsg () {
         if (this.msg === '') {
           this.$message.error('不能发送空消息!')
@@ -342,30 +336,30 @@
           return false
         }
         let msg = {
-          to: this.currentChat.id,
-          from: this.info.id,
+          chat_id: this.currentChat.chat_id,
           msg: this.msg,
           type: 'msg',
-          avatar: this.info.avatar,
-          time: this.getNowFormatDate()
+          from_id: this.info.id,
+          to_id: this.currentChat.id
         }
-        this.currentChat.msgList.push(msg)
-        this.socket.send(JSON.stringify(msg))
-        // 将当前用户移到列表最上面
-        for (let [index, {id}] of this.friendList.entries()) {
-          if (parseInt(id) === parseInt(this.currentChat.id)) {
-            let friend = this.friendList.splice(index, 1)[0]
-            this.friendList.unshift(friend)
-            this.$set(this.friendList[index], 'getNew', false)
-            break
+        this.send(msg).then(() => {
+          this.currentChat.msgList.push(msg)
+          // 将当前用户移到列表最上面
+          for (let [index, {id}] of this.chatList.entries()) {
+            if (parseInt(id) === parseInt(this.currentChat.id)) {
+              let friend = this.chatList.splice(index, 1)[0]
+              this.chatList.unshift(friend)
+              this.$set(this.chatList[index], 'getNew', false)
+              break
+            }
           }
-        }
-        this.msg = ''
+          this.msg = ''
+        })
       },
-      // 切换聊天对象
-      changeChat (friend) {
-        this.currentChat = friend
-        this.$set(friend, 'getNew', false)
+      // 切换当前聊天对象
+      changeChat (chat) {
+        this.currentChat = chat
+        this.$set(chat, 'getNew', false)
       },
       // 显示编辑页面
       handleShowEdit () {
@@ -453,12 +447,16 @@
       },
       // 聊天消息接受处理函数
       handleMsg (data) {
-        let from = parseInt(data.from)
-        for (let [index, {id}] of this.chatList.entries()) {
-          if (parseInt(id) === from) {
-            this.chatList[index].msgList.push(data)
-            this.$set(this.chatList[index], 'getNew', true)
-            break
+        if ('chat' in data) {
+          const chat = data.chat
+          chat.msgList.push(data.msg)
+          this.chatList.push(chat)
+        } else {
+          for (let [index, {chat_id}] of this.chatList.entries()) {
+            if (parseInt(chat_id) === parseInt(data.msg.chat_id)) {
+              this.chatList[index].msgList.push(data.msg)
+              break
+            }
           }
         }
       },
@@ -466,39 +464,31 @@
       onMessage (ws) {
         let data = JSON.parse(ws.data)
         switch (data.type) {
-          case 'chatList':
+          case 'chatList': // 聊天列表
             this.chatList = data.chatList
-            // 根据上下线排序
-            this.chatList.sort(function (a, b) {
-              if (a.online === true && b.online === false) return -1
-              if (a.online === false && b.online === true) return 1
-              return 0
-            })
             break
-          case 'userList':
+          case 'userList': // 用户列表
             this.userList = data.userList
             break
-          case 'friendList':
+          case 'friendList': // 好友列表
             this.friendList = data.friendList
             if (this.currentFriend.id === '' && this.friendList.length > 0) {
               this.selectFriend(this.friendList[0])
             }
             break
-          case 'goOff':
-            this.handleGoOff(data)
-            break
-          case 'goOnline':
-            this.handleGoOnline(data)
-            break
-          case 'msg':
+          // case 'goOff':   // 下线
+          //   this.handleGoOff(data)
+          //   break
+          // case 'goOnline': // 上线
+          //   this.handleGoOnline(data)
+          //   break
+          case 'msg': // 接受消息
             this.handleMsg(data)
             break
-          // token不正确
-          case 'forbidden':
+          case 'forbidden':  // token不正确
             this.handleLoginOut()
             break
-          // 被踢
-          case 'repeat':
+          case 'repeat':  // 被踢
             this.socket.close()
             this.$alert('你的账号已在别处登陆', '提示', {
               confirmButtonText: '确定',
@@ -508,8 +498,7 @@
               }
             })
             break
-          // 好友申请列表
-          case 'applyList':
+          case 'applyList':   // 好友申请列表
             this.applyList = data.applyList
             // 如果有未读的申请
             for (let index in this.applyList) {
@@ -519,15 +508,19 @@
               }
             }
             break
-          // 同意好友申请
-          case 'agreeSucc':
+          case 'agreeSucc':    // 同意好友申请
             this.send({type: 'friendList'}) // 重新获取好友列表
             this.$message.success('"' + data.friend.username + '"已经成为你的好友')
             break
-          // 好友申请被同意
-          case 'applySucc':
+          case 'applySucc':  // 好友申请被同意
             this.send({type: 'friendList'}) // 重新获取好友列表
             this.$message.success('"' + data.friend.username + '"已经同意你的好友申请')
+            break
+          case 'newChat':   // 新建聊天成功
+            let newChat = data['newChat']
+            this.chatList.push(newChat)  // 将新聊天增加到聊天列表中
+            this.switchInterface('chat')  // 切换到聊天界面
+            this.changeChat(newChat)    // 将当前聊天对象切换成该聊天
         }
       }
     },

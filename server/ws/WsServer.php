@@ -65,7 +65,7 @@ class WsServer implements ServerInterface
               $closeFd  = $server->redis->rPop("closeQueue");
               if($closeFd && $server->exist($closeFd)){
                   $server->push($closeFd,json_encode(['type'=>'repeat']));
-                  $server->close($closeFd);
+                  $server->close($closeFd); //此处有可能消息没发送就关闭了连接
               }
            });
         });
