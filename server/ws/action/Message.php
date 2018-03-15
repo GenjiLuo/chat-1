@@ -37,7 +37,7 @@ class Message extends Action
         $redis = $this->server->redis;
         $userId = $this->server->redis->hGet("userFd:userId", $this->frame->fd);
         $messageModel = new MessageModel($this->server->db);
-        $chatId = $data['chatId'];
+        $chatId = $data['chat_id'];
         $chatModel = new ChatModel($this->server->db);
         $chatInfo = $chatModel->selectOne(['chat_id' => $chatId, 'user_id' => $userId]);
         // 存在聊天对象才处理
@@ -57,7 +57,7 @@ class Message extends Action
                 $targetChat = $chatModel->selectOne(['target_id' => $userId, 'user_id' => $chatInfo['target_id']]);
                 if (sizeof($targetChat) == 0) { //没有
                     $chatId = $chatModel->add($chatInfo['target_id'], $userId); // 新增一个聊天
-                    $newChat = $chatModel->findOne(['chat_id'=>$chatId]);  // 获取聊天对象（包括friend info)
+                    $newChat = $chatModel->findOneWithUser(['chat_id'=>$chatId]);  // 获取聊天对象（包括friend info)
                 } else { // 有
                     $chatId = $targetChat['chat_id'];
                     $chatModel->update(['last_chat_time'=>$date],['chat_id' => $chatId]);
@@ -198,7 +198,7 @@ class Message extends Action
         $chatModel = new ChatModel($this->server->db);
         $id = $chatModel->add($userId, $targetId);
         if ($id) {
-            $newChat = $chatModel->findOne(['chat_id' => $id]);
+            $newChat = $chatModel->findOneWithUser(['chat_id' => $id]);
             $this->pushNewChat($this->frame->fd, ['newChat' => $newChat]);
         }
     }

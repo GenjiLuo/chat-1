@@ -16,10 +16,10 @@
                             </el-dropdown-menu>
                         </el-dropdown>
                         <div class="action" @click="switchInterface('chat')">
-                            <i class="fa fa-wechat" title="聊天" v-bind:class="{ active: visible.chatList }" ></i>
+                            <i class="fa fa-wechat" title="聊天" :class="{ active: visible.chatList }" ></i>
                         </div>
                         <div class="action" @click="switchInterface('friend')">
-                           <i class="fa fa-user-circle" title="好友" v-bind:class="{ active: visible.friendList }" ></i>
+                           <i class="fa fa-user-circle" title="好友" :class="{ active: visible.friendList }" ></i>
                             <sup class="dot" v-show="haveNotReadApply"></sup>
                         </div>
                     </div>
@@ -159,7 +159,7 @@
     </div>
 </template>
 <script>
-  import {avatarUrl, ws} from '../api/api'
+  import {avatarUrl, ws, deleteChat} from '../api/api'
   export default {
     data () {
       return {
@@ -231,6 +231,20 @@
       }
     },
     methods: {
+      // http删除聊天
+      handleDeleteChat(chatId){
+        deleteChat(chatId).then(data => {
+          if (parseInt(data.status) === 1) {
+            const chatId = data.chatId
+            for (let [index, {chat_id}] of this.chatList.entries()) {
+              if (parseInt(chat_id) === parseInt(chatId)) {
+                this.chatList.splice(index, 1)
+                break
+              }
+            }
+          }
+        })
+      },
       // 朋友详情栏点击`发送消息`触发事件
       handleChat (friendId) {
         let exist = false
@@ -331,7 +345,8 @@
           this.$message.error('不能发送空消息!')
           return false
         }
-        if (this.currentChat.id === '') {
+
+        if (Object.keys(this.currentChat).length === 0) {
           this.$message.error('请先选择聊天人员!')
           return false
         }

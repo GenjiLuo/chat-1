@@ -18,7 +18,7 @@ class FriendApplyModel extends DB
      * @param $where
      * @return array|bool
      */
-    public function find($where)
+    public function findWithUser($where)
     {
         $where['ORDER'] = ['friend_apply.created_at' => 'DESC'];
         $join = [
@@ -100,6 +100,7 @@ class FriendApplyModel extends DB
     public function agree($applyId)
     {
         $apply = $this->medoo->select(self::$tableName, "*", ['id' => $applyId])[0];
+        // 事务
         return $this->medoo->action(function (Medoo $db) use ($apply) {
             // 查看是否有相反的申请,如果有则把状态也修改为同意
             $sponsorId = $apply['target_id'];

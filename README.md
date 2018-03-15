@@ -1,6 +1,6 @@
 # Chat
 使用swoole实现的在线IM，包括一个http服务，一个websocket服务  
-功能上包括 注册，登陆，好友申请（同意拒绝），发送聊天消息，即时推送等等（参考微信PC端持续更新实现中）
+功能上包括 注册，登陆，好友申请（同意拒绝），发送聊天消息，即时推送等等（参考微信PC端,持续更新实现中）  
 后端使用 php + swoole + mysql(聊天消息，用户信息) + redis(用户在线状态等，队列)   
 前端使用 webpack + vue + vue-router + elementUI，界面上参考微信PC端(spa）
 ## Requirement
@@ -15,12 +15,12 @@
 // 启动后端服务
 composer install
 cd server\http 
-php run.php //启动http服务
+php run.php 
 cd server\ws
-php run.php //启动ws服务
+php run.php
 // 启动前端
 cd webroot
 npm install webpack -g
 npm -i
-npm run dev  //启用客户端
+npm run dev
 ```

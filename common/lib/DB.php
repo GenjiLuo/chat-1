@@ -55,4 +55,13 @@ class DB {
         return $this->medoo->update($class::$tableName,$data,$where);
     }
 
+    /**
+     * @param $where
+     * @return bool|\PDOStatement
+     */
+    public function delete($where){
+        $class = get_called_class();
+        return $this->medoo->delete($class::$tableName,$where);
+    }
+
 }

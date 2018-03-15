@@ -19,7 +19,7 @@ class ChatModel extends DB
      * @param $userId
      * @return array|bool
      */
-    public function findAll($userId)
+    public function findAllWithUser($userId)
     {
         $where = [
             'user_id' => $userId,
@@ -28,7 +28,7 @@ class ChatModel extends DB
         $join = [
             "[>]" . UserModel::$tableName => ['target_id' => 'id']
         ];
-        $fields = ['chat_id', 'user.id', 'last_chat_time', 'user.avatar', 'user.username', 'user.age', 'user.sex'];
+        $fields = ['chat_id','target_id', 'user.id', 'last_chat_time', 'user.avatar', 'user.username', 'user.age', 'user.sex'];
         $result = $this->medoo->select(self::$tableName, $join, $fields, $where);
         foreach ($result as $key => &$chat) {
             $chat['msgList'] = []; //todo
@@ -42,7 +42,7 @@ class ChatModel extends DB
      * @param array $fields
      * @return mixed
      */
-    public function findOne($where,$fields = ['chat_id', 'user.id', 'last_chat_time', 'user.avatar', 'user.username', 'user.age', 'user.sex'])
+    public function findOneWithUser($where,$fields = ['chat_id', 'user.id', 'last_chat_time', 'user.avatar', 'user.username', 'user.age', 'user.sex'])
     {
         $join = [
             "[>]" . UserModel::$tableName => ['target_id' => 'id']

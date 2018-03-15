@@ -4,6 +4,7 @@ namespace server\ws\action;
 
 use common\model\ChatModel;
 use common\model\FriendApplyModel;
+use common\model\MessageModel;
 use common\model\UserModel;
 
 class Open extends Action
@@ -25,7 +26,7 @@ class Open extends Action
             $redis->hSet("userFd:userId", $fd, $userId);
             // 聊天列表
             $chatModel = new ChatModel($this->server->db);
-            $chatList = $chatModel->findAll($userId);
+            $chatList = $chatModel->findAllWithUser($userId);
             // 判断是否在线
             if (sizeof($chatList) > 0) {
                 foreach ($chatList as $key => $val) {
@@ -34,6 +35,17 @@ class Open extends Action
                     } else {
                         $chatList[$key]['online'] = false;
                     }
+                    $msgList = (new MessageModel($this->server->db))->find([
+                            "OR #1" => [
+                                "AND #1" => ["from_id" => $val["target_id"], "to_id" =>$userId],
+                                "AND #2" => ["from_id" => $userId, "to_id" => $val["target_id"]],
+                            ],
+                            'chat_id'=>$val['chat_id'],
+                            "LIMIT" => 20,
+                            "ORDER" => ['time' => "DESC"]
+                        ]
+                    );
+                    $chatList[$key]['msgList'] = array_reverse($msgList);
                 }
                 // 排序,先按照上下线排序，再按最后聊天排序
                 foreach ($chatList as $key => $val) {
@@ -43,23 +55,12 @@ class Open extends Action
                 array_multisort($sortArrTwo, SORT_DESC, $sortArrOne, SORT_DESC, $chatList);
             }
 
-//                $msgList = (new MessageModel($this->server->db))->find([
-//                        "OR #1" => [
-//                            "AND #1" => ["from" => $val["id"], "to" => $user['id']],
-//                            "AND #2" => ["from" => $user['id'], "to" => $val["id"]],
-//                        ],
-//                        "LIMIT" => 20,
-//                        "ORDER" => ['time' => "DESC"]
-//                    ]
-//                );
-//                $val['msgList'] = array_reverse($msgList);
-//            }
             $this->pushChatList($fd, ["chatList" => $chatList]);
             // 调用task进程广播用户上线信息
             $this->pushTask(['fd' => $fd, 'user' => $user], Task::TASK_ONLINE);
             // 好友申请列表
             $applyModel = new FriendApplyModel($this->server->db);
-            $applyList = $applyModel->find(['target_id' => $userId]);
+            $applyList = $applyModel->findWithUser(['target_id' => $userId]);
             $this->pushApplyList($fd, ['applyList' => $applyList]);
         } else {
             $this->push($fd, [], "forbidden");

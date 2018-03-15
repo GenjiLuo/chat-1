@@ -21,8 +21,8 @@ class Avatar extends Controller
         $fileName = md5($file['name'].time())."jpg";
         $newFile = $avatarPath.$fileName;
         copy($file['tmp_name'],$newFile);
-        $userModel = App::createObject(UserModel::class);
         $userId = (App::createObject(MyRedis::class))->get($this->request->get["token"]);
+        $userModel = App::createObject(UserModel::class);
         $userModel->update(['avatar'=>$fileName],["id"=>$userId]);
         return [
             'status'=>1,

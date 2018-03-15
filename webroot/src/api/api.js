@@ -30,4 +30,7 @@ export const checkUsername = params => {
 export const loginByToken = params => {
   return axios.put(`${base}/token`, qs.stringify(params)).then(res => res.data)
 }
+export const deleteChat = id => {
+  return axios.delete(`${base}/chat/${id}`).then(res => res.data)
+}
 export const avatarUrl = `${base}/avatar`

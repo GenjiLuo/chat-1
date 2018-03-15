@@ -28,16 +28,6 @@ class UserModel extends DB
 
     /**
      * @param $data
-     * @param $where
-     * @return mixed
-     */
-    public function update(array $data, array $where)
-    {
-        return $this->medoo->update(self::$tableName, $data, $where);
-    }
-
-    /**
-     * @param $data
      * @return bool
      */
     public function add(array $data)
