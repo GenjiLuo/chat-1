@@ -5,7 +5,6 @@ namespace server\http\controller;
 use common\lib\MyRedis;
 use common\model\UserModel;
 use core\App;
-use Medoo\Medoo;
 
 class Token extends Controller
 {
