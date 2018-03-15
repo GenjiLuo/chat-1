@@ -3,13 +3,11 @@
 namespace server\http;
 
 use common\lib\exception\FileNotExistException;
+use core\App;
+use core\interfaces\ServerInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Http\Server;
-use core\interfaces\ServerInterface;
-use core\App;
-use common\lib\MyRedis;
-use Medoo\Medoo;
 
 class HttpServer implements ServerInterface
 {
@@ -21,7 +19,7 @@ class HttpServer implements ServerInterface
      */
     public function run()
     {
-        cli_set_process_title("swoole http server");
+        cli_set_process_title("SHTTP");
         $server = new Server(SERVER_HOST, HTTP_SERVER_PORT);
         $configFile = BASE_ROOT . "/server/http/config/server.php";
         if (is_file($configFile)) {
@@ -29,9 +27,9 @@ class HttpServer implements ServerInterface
         } else {
             throw new FileNotExistException("server config file");
         }
-
         $server->set($this->config);
         $server->on('request', function (Request $request, Response $response) {
+            // swoole不支持set_exception_handler,set_error_handler
             try {
                 App::$comp->router->dispatch($request, $response);
             } catch (\Exception $e) {
@@ -43,20 +41,6 @@ class HttpServer implements ServerInterface
                 }
             }
         });
-
         $server->start();
     }
-    /**
-     * @param null $key
-     * @return mixed
-     * 获取服务器配置参数
-     */
-    public function get($key = null)
-    {
-        if($key===null){
-            return $this->config;
-        }
-        return isset($this->config[$key])?$this->config[$key]:"";
-    }
-
 }

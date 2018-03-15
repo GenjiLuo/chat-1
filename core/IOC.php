@@ -5,6 +5,7 @@ namespace core;
  * Class IOC
  * @package core
  * 依赖注入
+ * 通过反射实现
  */
 class IOC
 {

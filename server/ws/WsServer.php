@@ -13,13 +13,14 @@ use common\lib\exception\FileNotExistException;
 class WsServer implements ServerInterface
 {
     public $config;
+
     /**
      * @return mixed|void
      * @throws FileNotExistException
      */
     public function run()
     {
-        cli_set_process_title("swoole websocket server");
+        cli_set_process_title("WebSocket");
         $server = new Server(SERVER_HOST, WS_SERVER_PORT);
         $configFile = BASE_ROOT . "/server/ws/config/server.php";
         if (is_file($configFile)) {
@@ -46,7 +47,7 @@ class WsServer implements ServerInterface
         });
         // 投递task回调函数
         $server->on("task", function (Server $server, int $taskId, int $workerId, $data) {
-            App::$comp->router->dispatch(['server'=>$server,'taskId'=>$taskId,'workerId'=>$workerId,'data'=>$data],'task');
+            App::$comp->router->dispatch(['server' => $server, 'taskId' => $taskId, 'workerId' => $workerId, 'data' => $data], 'task');
 
         });
         // task任务完成回调
@@ -54,36 +55,25 @@ class WsServer implements ServerInterface
 
         });
         // worker start 回调
-        // 此$server是worker 进程的server
-        $server->on("WorkerStart",function (Server $server,int $workId){
-            // 每个worker各自拥有自己的redis/mysql 连接
+        $server->on("WorkerStart", function (Server $server, int $workId) {
+            // 每个worker各自拥有自己的redis/mysql 连接,在action中通过$this->server->db/redis调用
             $server->redis = App::createObject(MyRedis::class);
-            $server->db =  App::createObject(Medoo::class);
-            // 设置用户重复登陆时自动断开发送消息通知，每个worker/task都有自己独立的定时器
-            // 所以设置有多少个worker + task 就会生成多少个定时器并发执行
-           $server->tick(500,function () use ($server){
-              $closeFd  = $server->redis->rPop("closeQueue");
-              if($closeFd && $server->exist($closeFd)){
-                  $server->push($closeFd,json_encode(['type'=>'repeat']));
-                  $server->close($closeFd); //此处有可能消息没发送就关闭了连接
-              }
-           });
+            $server->db = App::createObject(Medoo::class);
+            // 设置用户重复登陆时自动断开发送消息通知，每个worker都有自己独立的定时器
+            // 所以设置有多少个worker就会生成多少个定时器并发执行
+            // 只有worker才设置定时器，taskWorker不设置
+            if(!$server->taskworker){
+                $server->tick(500, function () use ($server) {
+                    $closeFd = $server->redis->rPop("closeQueue");
+                    if ($closeFd && $server->exist($closeFd)) {
+                        //此处有可能消息没发送就关闭了连接
+                        //todo
+                        $server->push($closeFd, json_encode(['type' => 'repeat']));
+                        $server->close($closeFd);
+                    }
+                });
+            }
         });
         $server->start();
     }
-
-    /**
-     * @param null $key
-     * @return mixed
-     * 获取服务器配置参数
-     */
-    public function get($key = null)
-    {
-        if ($key === null) {
-            return $this->config;
-        }
-        return isset($this->config[$key]) ? $this->config[$key] : "";
-    }
-
-
 }

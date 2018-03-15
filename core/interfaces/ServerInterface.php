@@ -12,5 +12,4 @@ interface ServerInterface
      */
     public function run();
 
-    public function get();
 }

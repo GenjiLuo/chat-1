@@ -90,8 +90,6 @@ abstract class Action
         if (isset($params['data'])) {
             $this->data = $params['data'];
         }
-        //检查db连接是否断开
-        //todo
     }
 
     /**
