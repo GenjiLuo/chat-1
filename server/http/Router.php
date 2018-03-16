@@ -64,9 +64,13 @@ class Router
      */
     public function dispatch(Request $request, Response $response)
     {
+        $response->header("Access-Control-Allow-Origin", "*");
+        $response->header("Access-Control-Allow-Methods", "PUT,POST,DELETE,OPTIONS,GET");
+        $response->header("Access-Control-Allow-Headers","*");
         $path = $request->server['request_uri'];
+        $pathArr = explode("/", substr($path, 1));
         // 如果是静态资源
-        if (substr($path, 1, 6) === STATIC_DIR) {
+        if ($pathArr[0] === STATIC_DIR) {
             $file = BASE_ROOT . $path;
             $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
             if (is_file($file)) {
@@ -80,12 +84,11 @@ class Router
         // 动态请求
         if ($callBack = $this->get($path)) {
             if (is_callable($callBack)) {
-                $response->header("Access-Control-Allow-Origin","*");
                 $result = call_user_func($callBack, $request, $response);
             }
             if (is_string($callBack)) {
-                $controller  = new $callBack($request, $response);
-                if($controller instanceof Controller){
+                $controller = new $callBack($request, $response);
+                if ($controller instanceof Controller) {
                     $result = $controller->run();
                 }
             }
@@ -94,14 +97,18 @@ class Router
                 return true;
             }
         } else { //如果在路由配置中没有找到,则按照默认规则匹配
+            $param = [];
+            if (isset($pathArr[1])) {
+                $param['id'] = $pathArr[1];
+            }
             $arr = array_map(function ($val) {
                 return ucfirst(strtolower($val));
-            }, explode("-", substr($path, 1)));
+            }, explode("-", $pathArr[0]));
             $controller = "server\http\controller\\" . implode("", $arr);
             if (class_exists($controller)) {
-                $controller = new $controller($request,$response);
+                $controller = new $controller($request, $response);
                 if ($controller instanceof Controller) {
-                    $response->end($controller->run());
+                    $response->end($controller->run($param));
                     return true;
                 }
             }

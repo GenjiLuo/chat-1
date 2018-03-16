@@ -23,17 +23,16 @@ class Token extends Controller
                     $redis->lPush("closeQueue", $fd);
                 }
                 $token = md5(time() + rand(1000, 9999));
-                $redis->set($token, $user["id"]);
-                $redis->close();
+                App::createObject(UserModel::class)
+                    ->update(['access_token'=>$token],['id'=>$user['id']]);
                 return ['status' => 1, "token" => $token, "user" => $user];
             } else {
                 return ['status' => 0];
             }
         } else {  //token登陆
             $token = $this->request->post['token'];
-            $userId = $redis->get($token);
-            if ($userId) {
-                $user = $userModel->findOne(['id' => $userId]);
+            $user  = App::createObject(UserModel::class)->findOne(['access_token'=>$token]);
+            if ($user) {
                 return ['status' => 1, "token" => $token, "user" => $user];
             } else {
                 return ['status' => 0];

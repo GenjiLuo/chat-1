@@ -8,6 +8,11 @@ use common\lib\CResponse;
 abstract class Controller
 {
     /**
+     * @var null
+     */
+    protected $user = null;
+
+    /**
      * @var Request
      */
     protected $request;
@@ -23,6 +28,11 @@ abstract class Controller
      * @var string
      */
     protected $responseContent = false;
+    /**
+     * @var
+     */
+    protected $params;
+
 
     /**
      * Controller constructor.
@@ -33,23 +43,22 @@ abstract class Controller
     {
         $this->request = $request;
         $this->response = $response;
-        // 设置允许跨域访问
-        $this->response->header("Access-Control-Allow-Origin","*");
     }
 
     /**
      * @return mixed|string
      * @throws ForbiddenException
      */
-    public function run()
+    public function run($params)
     {
+        $this->params = $params;
         if($this->beforeAction()){
             switch ($this->request->server['request_method']) {
                 case "GET":
                     $this->responseContent =  $this->view();
                     break;
                 case 'POST':
-                    $this->responseContent =  $this->add();
+                    $this->responseContent =  $this->create();
                     break;
                 case 'PUT':
                     $this->responseContent = $this->update();
@@ -95,7 +104,7 @@ abstract class Controller
      * @return mixed
      * post method
      */
-    public  function add(){
+    public  function create(){
         return false;
     }
 

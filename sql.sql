@@ -99,6 +99,7 @@ create table `friend_apply`(
   `created_at` DATETIME not null COMMENT '申请时间',
   `is_read` TINYINT not null DEFAULT 0 COMMENT '是否已读',
   `status` TINYINT not NULL DEFAULT 0 COMMENT '状态',
+  `season` VARCHAR(255) NOT NULL  DEFAULT '',
   PRIMARY KEY (`id`),
   INDEX (`sponsor_id`)
 )ENGINE=innodb

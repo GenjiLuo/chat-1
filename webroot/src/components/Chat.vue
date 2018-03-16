@@ -30,7 +30,12 @@
                         </div>
                         <div class="list">
                             <div v-for="chat in filterChatList" :key="chat.id" :title="chat.username" @click="changeChat(chat)" :class="{current: currentChat.id===chat.id }">
-                                <img :src="chat.avatar" :class="{offline:!chat.online}">
+                                <el-dropdown  @command="handleDeleteChat(chat.chat_id)">
+                                    <img :src="chat.avatar" :class="{offline:!chat.online}">
+                                    <el-dropdown-menu slot="dropdown" >
+                                        <el-dropdown-item >删除聊天</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </el-dropdown>
                                 <span>{{chat.username}}</span>
                                 <sup class="dot" v-if="chat.getNew===true"></sup>
                             </div>
@@ -159,7 +164,7 @@
     </div>
 </template>
 <script>
-  import {avatarUrl, ws, deleteChat} from '../api/api'
+  import {avatarUrl, ws, deleteChat, createChat, updateUser, friendList, createApply} from '../api/api'
   export default {
     data () {
       return {
@@ -232,13 +237,16 @@
     },
     methods: {
       // http删除聊天
-      handleDeleteChat(chatId){
+      handleDeleteChat (chatId) {
         deleteChat(chatId).then(data => {
           if (parseInt(data.status) === 1) {
             const chatId = data.chatId
             for (let [index, {chat_id}] of this.chatList.entries()) {
               if (parseInt(chat_id) === parseInt(chatId)) {
-                this.chatList.splice(index, 1)
+                const deleteChat = this.chatList.splice(index, 1)[0]
+                if (deleteChat === this.currentChat) {
+                  this.currentChat = {}
+                }
                 break
               }
             }
@@ -248,18 +256,26 @@
       // 朋友详情栏点击`发送消息`触发事件
       handleChat (friendId) {
         let exist = false
+        let chat
         for (let [index, {id}] of this.chatList.entries()) {
           if (parseInt(id) === parseInt(friendId)) {
-            const chat = this.chatList[index]
-            exist = true
+            chat = this.chatList[index]// 移动到最上层
             this.switchInterface('chat')  // 切换到聊天界面
             this.changeChat(chat)    // 将当前聊天对象切换成该聊天
+            exist = true
             break
           }
         }
-        // 如果聊天不存在,发送创建聊天请求
+        // 如果聊天不存在,则创建聊天请求
         if (!exist) {
-          this.send({type: 'createChat', targetId: friendId})
+          createChat({targetId: friendId}).then(res => {
+            if (parseInt(res.status) === 1) {
+              chat = res.chat
+              this.chatList.push(chat)
+              this.switchInterface('chat')  // 切换到聊天界面
+              this.changeChat(chat)    // 将当前聊天对象切换成该聊天
+            }
+          })
         }
       },
       // 同意好友申请
@@ -277,9 +293,11 @@
       // 显示好友申请列表
       showApplyList () {
         this.visible.applyList = true
-        // 发送好友申请已读
-        this.send({type: 'applyRead'}).then(() => {
-          this.haveNotReadApply = false
+        // 设置好友申请已读
+        updateUser({id: this.info.id, type: 'applyRead'}).then(res => {
+          if (parseInt(res.status) === 1) {
+            this.haveNotReadApply = false
+          }
         })
       },
       // 选择朋友
@@ -292,8 +310,19 @@
       },
       // 新增好友请求
       handleAddFriend (user) {
-        this.send({type: 'addFriend', targetId: user.id}).then(() => {
-          this.$set(user, 'can_apply', false)
+        createApply({targetId: user.id, reason: '测试'}).then(res => {
+          if(parseInt(res.status) === 1){
+            this.$set(user, 'can_apply', false)
+          }
+        })
+      },
+      // 获取朋友列表
+      handleFriendList () {
+        friendList({}).then(res => {
+          this.friendList = res.friendList
+          if (this.currentFriend.id === '' && this.friendList.length > 0) {
+            this.selectFriend(this.friendList[0])
+          }
         })
       },
       // 切换界面
@@ -301,8 +330,6 @@
         if (type === 'friend') {
           this.visible.friendList = true
           this.visible.chatList = false
-          // 获取好友列表
-          this.send({type: 'friendList'})
         }
         if (type === 'chat') {
           this.visible.friendList = false
@@ -345,7 +372,6 @@
           this.$message.error('不能发送空消息!')
           return false
         }
-
         if (Object.keys(this.currentChat).length === 0) {
           this.$message.error('请先选择聊天人员!')
           return false
@@ -485,12 +511,7 @@
           case 'userList': // 用户列表
             this.userList = data.userList
             break
-          case 'friendList': // 好友列表
-            this.friendList = data.friendList
-            if (this.currentFriend.id === '' && this.friendList.length > 0) {
-              this.selectFriend(this.friendList[0])
-            }
-            break
+
           // case 'goOff':   // 下线
           //   this.handleGoOff(data)
           //   break
@@ -531,17 +552,13 @@
             this.send({type: 'friendList'}) // 重新获取好友列表
             this.$message.success('"' + data.friend.username + '"已经同意你的好友申请')
             break
-          case 'newChat':   // 新建聊天成功
-            let newChat = data['newChat']
-            this.chatList.push(newChat)  // 将新聊天增加到聊天列表中
-            this.switchInterface('chat')  // 切换到聊天界面
-            this.changeChat(newChat)    // 将当前聊天对象切换成该聊天
         }
       }
     },
     mounted () {
       this.openConnect()
       this.info = JSON.parse(localStorage.getItem('user'))
+      this.handleFriendList()
     },
     watch: {
       // 断开连接后的提示
@@ -666,7 +683,7 @@
                 overflow: auto
                 height: 530px
                 text-align: left
-                div
+                >div
                     position: relative
                     padding: 5px 0px 5px 15px
                     height: 40px

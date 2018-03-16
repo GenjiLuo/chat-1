@@ -4,7 +4,7 @@ import Chat from '@/components/Chat'
 import Login from '@/components/Login'
 import Register from '@/components/Register'
 import {loginByToken} from '../api/api.js'
-
+import Store from '../store/index'
 Vue.use(Router)
 
 const notLoginJump = (to, form, next) => {
@@ -12,6 +12,7 @@ const notLoginJump = (to, form, next) => {
   if (token) {
     loginByToken({token: token}).then(res => {
       if (parseInt(res.status) === 1) {
+        Store.state.token = res.token
         localStorage.setItem('user', JSON.stringify(res.user))
         next()
       } else {

@@ -61,7 +61,8 @@ class DB {
      */
     public function delete($where){
         $class = get_called_class();
-        return $this->medoo->delete($class::$tableName,$where);
+        $pdo =  $this->medoo->delete($class::$tableName,$where);
+        return $pdo->rowCount();
     }
 
 }

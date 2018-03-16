@@ -2,12 +2,12 @@
 
 namespace server\http\controller;
 
-use common\lib\DB;
 use common\model\ChatModel;
 use common\model\MessageModel;
 use core\App;
+use Medoo\Medoo;
 
-class Chat extends Controller
+class Chat extends Auth
 {
     /**
      * @return array|mixed
@@ -15,16 +15,36 @@ class Chat extends Controller
      */
     public function delete()
     {
-        $chatId = isset($this->request->get['ChatId']) ? $this->request->get['ChatId'] : null;
-        if ($chatId) {
-            $db = App::createObject(DB::class);
-            $result = (new ChatModel($db))->delete(['chat_id' => $chatId]);
+        $id = isset($this->params['id']) ? $this->params['id'] : null;
+        if ($id) {
+            $db = App::createObject(Medoo::class);
+            $result = (new ChatModel($db))->delete(['chat_id' => $id]);
+            var_dump($db->log());
             if ($result) {
-                (new MessageModel($db))->delete(['chat_id' => $chatId]);
-                return ['status' => 1, 'chatId' => $chatId];
+                (new MessageModel($db))->delete(['chat_id' => $id]);
+                return ['status' => 1, 'chatId' => $id];
             }
         }
         return ['status' => 0];
     }
+
+    /**
+     * @return array|mixed
+     * 创建聊天
+     */
+    public function create(){
+        $targetId = isset($this->request->post['targetId'])?$this->request->post['targetId']:null;
+        if($targetId){
+            $chatModel = App::createObject(ChatModel::class);
+            $id = $chatModel ->add($this->user['id'], $targetId);
+            if ($id) {
+                $newChat = $chatModel->findOneWithUser(['chat_id' => $id]);
+                return ['status'=>1,'chat'=>$newChat];
+            }
+        }
+        return ['status'=>0];
+
+    }
+
 
 }

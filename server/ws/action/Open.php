@@ -13,11 +13,10 @@ class Open extends Action
     {
         $redis = $this->server->redis;
         $token = $this->request->get['token'];
-        $userId = $redis->get($token);
+        $user = (new UserModel($this->server->db))->findOne(['access_token' => $token]);
         $fd = $this->request->fd;
-        if ($userId) {
-            $userModel = new UserModel($this->server->db);
-            $user = $userModel->findOne(['id' => $userId]);
+        if ($user) {
+            $userId = $user['id'];
             // 在线用户列表
             $redis->sAdd("onlineList", $userId);
             // 用户id:$fd 关联哈希表
@@ -37,10 +36,10 @@ class Open extends Action
                     }
                     $msgList = (new MessageModel($this->server->db))->find([
                             "OR #1" => [
-                                "AND #1" => ["from_id" => $val["target_id"], "to_id" =>$userId],
+                                "AND #1" => ["from_id" => $val["target_id"], "to_id" => $userId],
                                 "AND #2" => ["from_id" => $userId, "to_id" => $val["target_id"]],
                             ],
-                            'chat_id'=>$val['chat_id'],
+                            'chat_id' => $val['chat_id'],
                             "LIMIT" => 20,
                             "ORDER" => ['time' => "DESC"]
                         ]

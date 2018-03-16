@@ -9,9 +9,9 @@ use core\App;
  * Class Avatar
  * @package server\http\controller
  */
-class Avatar extends Controller
+class Avatar extends Auth
 {
-    public function add()
+    public function create()
     {
         $file = $this->request->files['file'];
         if ($file["type"] != "image/jpeg") {

@@ -72,16 +72,7 @@ class FriendApplyModel extends DB
         return false;
     }
 
-    /**
-     * @param $userId
-     * @return bool|\PDOStatement
-     */
-    public function handleRead($userId)
-    {
-        $where = ['target_id' => $userId, 'is_read' => 0];
-        $data = ['is_read' => 1];
-        return $this->medoo->update(self::$tableName, $data, $where);
-    }
+
 
     /**
      * @param $applyId

@@ -134,27 +134,6 @@ class Message extends Action
     }
 
     /**
-     * 好友列表
-     */
-    private function friendList($data)
-    {
-        $userId = $this->server->redis->hGet("userFd:userId", $this->frame->fd);
-        $model = new UserFriendModel($this->server->db);
-        $friendList = $model->find($userId);
-        $this->pushFriendList($this->frame->fd, ["friendList" => $friendList]);
-    }
-
-    /**
-     *  好友申请标记已读
-     */
-    private function applyRead($data)
-    {
-        $userId = $this->server->redis->hGet("userFd:userId", $this->frame->fd);
-        $model = new FriendApplyModel($this->server->db);
-        $model->handleRead($userId);
-    }
-
-    /**
      * @param $data
      * 拒绝好友申请
      */
@@ -184,22 +163,6 @@ class Message extends Action
                 $sponsorFd = $redis->hGet('userId:userFd', $sponsor['id']);
                 $this->pushApplySucc($sponsorFd, ['friend' => $target, 'applyId' => $applyId]);
             }
-        }
-    }
-
-    /**
-     * @param $data
-     * 创建普通聊天
-     */
-    private function createChat($data)
-    {
-        $targetId = $data['targetId'];
-        $userId = $this->server->redis->hGet("userFd:userId", $this->frame->fd);
-        $chatModel = new ChatModel($this->server->db);
-        $id = $chatModel->add($userId, $targetId);
-        if ($id) {
-            $newChat = $chatModel->findOneWithUser(['chat_id' => $id]);
-            $this->pushNewChat($this->frame->fd, ['newChat' => $newChat]);
         }
     }
 
