@@ -2,6 +2,7 @@
 
 namespace server\http\controller;
 
+use common\lib\MyRedis;
 use common\model\FriendApplyModel;
 use core\App;
 
@@ -19,8 +20,12 @@ class Apply extends Auth
             'reason' => $reason
         ];
         $model->insert($data);
-        if ($model->medoo->id()) {
+        if ($id = $model->medoo->id()) {
+            $redis = App::createObject(MyRedis::class);
+            // 加入到通知队列中
+            $redis->lPush("applyNotice",$id);
             return ['status' => 1];
+
         }
         return ['status'=>0];
     }

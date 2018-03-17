@@ -37,6 +37,20 @@ class DB {
     }
 
     /**
+     * @param $where
+     * @param $fields
+     * @return mixed
+     */
+    public function selectAll($where,$fields = '*'){
+        $class = get_called_class();
+        $result = $this->medoo->select($class::$tableName,$fields,$where);
+        return $result ? $result :[] ;
+    }
+
+
+
+
+    /**
      * @param $data
      * @return bool|\PDOStatement
      */

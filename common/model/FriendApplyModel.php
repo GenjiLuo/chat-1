@@ -24,7 +24,7 @@ class FriendApplyModel extends DB
         $join = [
             "[>]" . UserModel::$tableName => ['sponsor_id' => 'id']
         ];
-        $fields = ['friend_apply.is_read', 'friend_apply.status',
+        $fields = ['friend_apply.is_read', 'friend_apply.status','reason',
             'user.avatar', 'user.username', 'user.age', 'user.sex', 'friend_apply.id'];
         $result = $this->medoo->select(self::$tableName, $join, $fields, $where);
         if ($result) {

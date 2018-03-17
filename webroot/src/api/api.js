@@ -45,6 +45,9 @@ export const updateUser = params => {
 export const friendList = params => {
   return axios.get(`${base}/friend`, {params: params}).then(res => res.data)
 }
+export const deleteFriend = id => {
+  return axios.delete(`${base}/friend/${id}`).then(res => res.data)
+}
 export const createApply = params => {
   return axios.post(`${base}/apply`, qs.stringify(params)).then(res => res.data)
 }

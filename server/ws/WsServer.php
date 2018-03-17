@@ -37,7 +37,7 @@ class WsServer implements ServerInterface
         $server->on("message", function (Server $server, $frame) {
             App::$comp->router->dispatch(['server' => $server, "frame" => $frame], "message");
         });
-        // 接受请求回调函数
+        // http接受请求回调函数
         $server->on("request", function (Server $server, $response) {
 //           App::$comp->router->dispatch(['server' => $server, "response" => $response], "request");
         });

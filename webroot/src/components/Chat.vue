@@ -53,7 +53,12 @@
                                 <sup class="dot" v-show="haveNotReadApply"></sup>
                             </div>
                             <div v-for="friend in friendList" :key="friend.id" :title="friend.username" @click="selectFriend(friend)" :class="{current: currentFriend.id===friend.id }">
-                                <img :src="friend.avatar" >
+                                <el-dropdown  @command="handleDeleteFriend(friend.id)">
+                                    <img :src="friend.avatar" >
+                                    <el-dropdown-menu slot="dropdown" >
+                                        <el-dropdown-item >删除朋友</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </el-dropdown>
                                 <span>{{friend.username}}</span>
                             </div>
                         </div>
@@ -135,21 +140,21 @@
                 </div>
             </div>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="visible.newFriend = false">取 消</el-button>
-                <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+                <el-button @click="visible.newFriend = false">关 闭</el-button>
             </span>
         </el-dialog>
         <!--用户搜索申请 end-->
 
         <!--好友申请列表 start-->
-        <el-dialog :visible.sync="visible.applyList" width="300px" :show-close="false" custom-class="new-friend" >
+        <el-dialog :visible.sync="visible.applyList" width="400px" :show-close="false" custom-class="new-friend" >
             <span slot="title">
                   <el-input  v-model.trim="search.applyList" auto-complete="off"  size="small" prefix-icon="el-icon-search" placeholder="用户名" />
             </span>
-            <div class="user-box">
+            <div class="apply-box">
                 <div v-for="apply in filterApplyList">
                     <img :src="apply.avatar">
                     <span>{{apply.username}}</span>
+                    <span>({{apply.reason}})</span>
                     <el-button  @click='handleReject(apply)' size="mini" class="el-icon-error" type="danger" plain v-show="parseInt(apply.status)===0" />
                     <el-button  @click='handleAgree(apply)' size="mini" class="el-icon-success"  type="primary" plain v-show="parseInt(apply.status)===0" />
                     <el-button  :disabled="parseInt(apply.status) === 1 " size="mini"   type="primary" plain  v-show="parseInt(apply.status)===1">已同意</el-button>
@@ -157,14 +162,14 @@
                 </div>
             </div>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="visible.applyList = false">取 消</el-button>
+                <el-button @click="visible.applyList = false">关闭</el-button>
             </span>
         </el-dialog>
         <!--好友申请列表 end-->
     </div>
 </template>
 <script>
-  import {avatarUrl, ws, deleteChat, createChat, updateUser, friendList, createApply} from '../api/api'
+  import {avatarUrl, ws, deleteChat, createChat, updateUser, friendList, createApply, deleteFriend} from '../api/api'
   export default {
     data () {
       return {
@@ -236,6 +241,14 @@
       }
     },
     methods: {
+      // http删除朋友
+      handleDeleteFriend (id) {
+        deleteFriend(id).then(res => {
+          if (parseInt(res.status) === 1){
+            this.handleFriendList()
+          }
+        })
+      },
       // http删除聊天
       handleDeleteChat (chatId) {
         deleteChat(chatId).then(data => {
@@ -310,10 +323,15 @@
       },
       // 新增好友请求
       handleAddFriend (user) {
-        createApply({targetId: user.id, reason: '测试'}).then(res => {
-          if(parseInt(res.status) === 1){
-            this.$set(user, 'can_apply', false)
-          }
+        this.$prompt(' ', '申请理由', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消'
+        }).then(({ value }) => {
+          createApply({targetId: user.id, reason: value}).then(res => {
+            if (parseInt(res.status) === 1) {
+              this.$set(user, 'can_apply', false)
+            }
+          })
         })
       },
       // 获取朋友列表
@@ -545,7 +563,7 @@
             }
             break
           case 'agreeSucc':    // 同意好友申请
-            this.send({type: 'friendList'}) // 重新获取好友列表
+            this.handleFriendList()
             this.$message.success('"' + data.friend.username + '"已经成为你的好友')
             break
           case 'applySucc':  // 好友申请被同意
@@ -738,11 +756,11 @@
                     text-align: center
                     white-space: nowrap
                     border: 1px solid #fff
-                div:nth-child(1)
+                >div:nth-child(1)
                     border-bottom: 2px solid #DCDFE6
                 .current
                     background-color: #c6c5c5
-                div
+                >div
                     text-align: left
                     position: relative
                     padding: 5px 0px 5px 15px
@@ -925,5 +943,31 @@
                     float: right
                     margin-top: 6px
                     margin-left: 10px
+        .apply-box
+            overflow: auto
+            div
+                height: 40px
+                line-height: 40px
+                text-align: left
+                margin: 8px 0 5px
+                img
+                    border-radius: 5px
+                    height: $imageSize
+                    width: $imageSize
+                span:first-child
+                    font-size: 25px
+                span
+                    height: 40px
+                    line-height: 40px
+                    display: inline-block
+                    vertical-align: top
+                    margin-left: 10px
+
+                button
+                    vertical-align: top
+                    float: right
+                    margin-top: 6px
+                    margin-left: 10px
+
 
 </style>
