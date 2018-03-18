@@ -244,7 +244,7 @@
       // http删除朋友
       handleDeleteFriend (id) {
         deleteFriend(id).then(res => {
-          if (parseInt(res.status) === 1){
+          if (parseInt(res.status) === 1) {
             this.handleFriendList()
           }
         })

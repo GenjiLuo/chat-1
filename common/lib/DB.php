@@ -56,7 +56,8 @@ class DB {
      */
     public function insert($data){
         $class = get_called_class();
-        return $this->medoo->insert($class::$tableName,$data);
+        $this->medoo->insert($class::$tableName,$data);
+        return $this->medoo->id();
     }
 
     /**

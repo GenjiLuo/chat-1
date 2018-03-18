@@ -19,13 +19,14 @@ class Apply extends Auth
             'created_at' => date('Y-m-d H:i:s'),
             'reason' => $reason
         ];
-        $model->insert($data);
+        $applyId = $model->insert($data);
+
         if ($id = $model->medoo->id()) {
             $redis = App::createObject(MyRedis::class);
             // 加入到通知队列中
-            $redis->lPush("applyNotice",$id);
-            return ['status' => 1];
 
+            var_dump($redis->publish('applyCH',$applyId));
+            return ['status'=>1];
         }
         return ['status'=>0];
     }

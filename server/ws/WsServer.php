@@ -6,6 +6,7 @@ use core\interfaces\ServerInterface;
 use common\lib\MyRedis;
 use Medoo\Medoo;
 use Swoole\Http\Request;
+use Swoole\Redis;
 use Swoole\WebSocket\Server;
 use core\App;
 use common\lib\exception\FileNotExistException;
@@ -62,7 +63,7 @@ class WsServer implements ServerInterface
             // 设置用户重复登陆时自动断开发送消息通知，每个worker都有自己独立的定时器
             // 所以设置有多少个worker就会生成多少个定时器并发执行
             // 只有worker才设置定时器，taskWorker不设置
-            if(!$server->taskworker){
+            if (!$server->taskworker) {
                 $server->tick(500, function () use ($server) {
                     $closeFd = $server->redis->rPop("closeQueue");
                     if ($closeFd && $server->exist($closeFd)) {
@@ -72,6 +73,18 @@ class WsServer implements ServerInterface
                         $server->close($closeFd);
                     }
                 });
+            }
+            if($workId == 1){
+                $client = new Redis();
+                var_dump($client);
+                $client->on('message', function (Redis $client, $result) use ($server) {
+                    var_dump($result);
+                });
+                $client->connect(REDIS_HOST, REDIS_PORT, function (Redis $client, $result) {
+                    $client->subscribe('applyCH');
+                    echo "redis链接成功";
+                });
+
             }
         });
         $server->start();

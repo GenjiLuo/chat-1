@@ -9,7 +9,7 @@ use common\model\FriendApplyModel;
  * Class User
  * @package server\http\controller
  */
-class User extends Auth
+class User extends Controller
 {
 
     public function view()
