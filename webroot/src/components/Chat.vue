@@ -154,7 +154,7 @@
                 <div v-for="apply in filterApplyList">
                     <img :src="apply.avatar">
                     <span>{{apply.username}}</span>
-                    <span>({{apply.reason}})</span>
+                    <span v-if="apply.reason">({{apply.reason}})</span>
                     <el-button  @click='handleReject(apply)' size="mini" class="el-icon-error" type="danger" plain v-show="parseInt(apply.status)===0" />
                     <el-button  @click='handleAgree(apply)' size="mini" class="el-icon-success"  type="primary" plain v-show="parseInt(apply.status)===0" />
                     <el-button  :disabled="parseInt(apply.status) === 1 " size="mini"   type="primary" plain  v-show="parseInt(apply.status)===1">已同意</el-button>
@@ -169,7 +169,7 @@
     </div>
 </template>
 <script>
-  import {avatarUrl, ws, deleteChat, createChat, updateUser, friendList, createApply, deleteFriend} from '../api/api'
+  import {avatarUrl, ws, deleteChat, createChat, updateUser, friendList, createApply, deleteFriend, updateApply} from '../api/api'
   export default {
     data () {
       return {
@@ -266,6 +266,33 @@
           }
         })
       },
+      // 同意好友申请
+      handleAgree (apply) {
+        updateApply({status: 1, id: apply.id}).then(res => {
+          if (parseInt(res.status) === 1) {
+            this.handleFriendList()
+            apply.status = 1
+          }
+        })
+      },
+      // 拒绝好友申请
+      handleReject (apply) {
+        updateApply({status: 2, id: apply.id}).then(res => {
+          if (parseInt(res.status) === 1) {
+            apply.status = 2
+          }
+        })
+      },
+      // 显示好友申请列表
+      showApplyList () {
+        this.visible.applyList = true
+        // 设置好友申请已读
+        updateUser({id: this.info.id, type: 'applyRead'}).then(res => {
+          if (parseInt(res.status) === 1) {
+            this.haveNotReadApply = false
+          }
+        })
+      },
       // 朋友详情栏点击`发送消息`触发事件
       handleChat (friendId) {
         let exist = false
@@ -291,28 +318,7 @@
           })
         }
       },
-      // 同意好友申请
-      handleAgree (apply) {
-        this.send({type: 'agree', applyId: apply.id}).then(() => {
-          apply.status = 1
-        })
-      },
-      // 拒绝好友申请
-      handleReject (apply) {
-        this.send({type: 'reject', applyId: apply.id}).then(() => {
-          apply.status = 2
-        })
-      },
-      // 显示好友申请列表
-      showApplyList () {
-        this.visible.applyList = true
-        // 设置好友申请已读
-        updateUser({id: this.info.id, type: 'applyRead'}).then(res => {
-          if (parseInt(res.status) === 1) {
-            this.haveNotReadApply = false
-          }
-        })
-      },
+
       // 选择朋友
       selectFriend (friend) {
         this.currentFriend = friend
