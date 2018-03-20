@@ -20,7 +20,7 @@ class Token extends Controller
                 // 如果该用户已经登陆在线,获取fd加入待关闭的队列中
                 if ($redis->sIsMember("onlineList", $user['id'])) {
                     $fd = $redis->hGet("userId:userFd", $user['id']);
-                    $redis->lPush("closeQueue", $fd);
+                    $redis->publish('closeFD',$fd);
                 }
                 $token = md5(time() + rand(1000, 9999));
                 App::createObject(UserModel::class)

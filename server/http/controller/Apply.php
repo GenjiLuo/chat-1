@@ -8,6 +8,9 @@ use core\App;
 
 class Apply extends Auth
 {
+    /**
+     * @return array|mixed
+     */
     public function create()
     {
         $targetId = $this->request->post['targetId'];
@@ -23,10 +26,34 @@ class Apply extends Auth
 
         if ($id = $model->medoo->id()) {
             $redis = App::createObject(MyRedis::class);
-            // 加入到通知队列中
-
-            var_dump($redis->publish('applyCH',$applyId));
+            //发布
+            $redis->publish('applyCH',$applyId);
             return ['status'=>1];
+        }
+        return ['status'=>0];
+    }
+
+    /**
+     * @return array|mixed
+     */
+    public function update()
+    {
+        $applyId= $this->params['id'];
+        $applyModel = App::createObject(FriendApplyModel::class);
+        $apply =$applyModel->selectOne(['id'=>$applyId,'target_id'=>$this->user['id']]);
+        if($apply){
+            $status  = $this->request->post['status'];
+            if($status ==1){
+                if($applyModel->agree($applyId)){
+                    $redis = App::createObject(MyRedis::class);
+                    $redis->publish('agreeCH',$applyId);
+                    return ['status'=>1];
+                }
+            }else{
+                if($applyModel->update(['status'=>$status],['id'=>$applyId])){
+                    return ['status'=>1];
+                }
+            }
         }
         return ['status'=>0];
     }

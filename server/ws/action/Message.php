@@ -116,25 +116,6 @@ class Message extends Action
 
     /**
      * @param $data
-     * 申请添加好友
-     */
-    private function addFriend($data)
-    {
-        $sponsorId = $this->server->redis->hGet("userFd:userId", $this->frame->fd);
-        $targetId = $data['targetId'];
-        $model = new FriendApplyModel($this->server->db);
-        $model->add($sponsorId, $targetId);
-        $redis = $this->server->redis;
-        if ($redis->sIsMember("onlineList", $targetId)) { //如果申请目标在线,推送全新的好友申请列表
-            $targetFd = $redis->hGet('userId:userFd', $targetId);
-            $applyModel = new FriendApplyModel($this->server->db);
-            $applyList = $applyModel->find(['target_id' => $targetId]);
-            $this->pushApplyList($targetFd, ['applyList' => $applyList]);
-        }
-    }
-
-    /**
-     * @param $data
      * 拒绝好友申请
      */
     private function reject($data)

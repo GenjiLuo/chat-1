@@ -43,7 +43,7 @@ abstract class Action
     public $workerId;
     /**
      * @var array
-     * taskHandle 参数
+     * taskHandle/channel 参数
      */
     public $data;
 

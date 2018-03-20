@@ -6,7 +6,7 @@
                     <div class="info">
                         <el-dropdown @command="handleCommand">
                             <span class="el-dropdown-link">
-                                <div class="avatar" >
+                                <div class="avatar">
                                 <img :src="info.avatar">
                                 </div>
                             </span>
@@ -16,24 +16,26 @@
                             </el-dropdown-menu>
                         </el-dropdown>
                         <div class="action" @click="switchInterface('chat')">
-                            <i class="fa fa-wechat" title="聊天" :class="{ active: visible.chatList }" ></i>
+                            <i class="fa fa-wechat" title="聊天" :class="{ active: visible.chatList }"></i>
                         </div>
                         <div class="action" @click="switchInterface('friend')">
-                           <i class="fa fa-user-circle" title="好友" :class="{ active: visible.friendList }" ></i>
+                            <i class="fa fa-user-circle" title="好友" :class="{ active: visible.friendList }"></i>
                             <sup class="dot" v-show="haveNotReadApply"></sup>
                         </div>
                     </div>
                     <div class="chat-list" v-show="visible.chatList">
                         <div class="head">
-                            <el-input size="small" v-model="search.chat" class="search"  prefix-icon="el-icon-search" placeholder="用户名"/>
+                            <el-input size="small" v-model="search.chat" class="search" prefix-icon="el-icon-search"
+                                      placeholder="用户名"/>
                             <span class="el-icon-plus" title="新建聊天群组"></span>
                         </div>
                         <div class="list">
-                            <div v-for="chat in filterChatList" :key="chat.id" :title="chat.username" @click="changeChat(chat)" :class="{current: currentChat.id===chat.id }">
-                                <el-dropdown  @command="handleDeleteChat(chat.chat_id)">
+                            <div v-for="chat in filterChatList" :key="chat.id" :title="chat.username"
+                                 @click="changeChat(chat)" :class="{current: currentChat.id===chat.id }">
+                                <el-dropdown @command="handleDeleteChat(chat.chat_id)">
                                     <img :src="chat.avatar" :class="{offline:!chat.online}">
-                                    <el-dropdown-menu slot="dropdown" >
-                                        <el-dropdown-item >删除聊天</el-dropdown-item>
+                                    <el-dropdown-menu slot="dropdown">
+                                        <el-dropdown-item>删除聊天</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </el-dropdown>
                                 <span>{{chat.username}}</span>
@@ -43,7 +45,8 @@
                     </div>
                     <div class="friend-list" v-show="visible.friendList">
                         <div class="head">
-                            <el-input  size="small" v-model="search.friend" class="search"  prefix-icon="el-icon-search" placeholder="用户名"/>
+                            <el-input size="small" v-model="search.friend" class="search" prefix-icon="el-icon-search"
+                                      placeholder="用户名"/>
                             <span class="el-icon-plus" title="新增好友" @click="showAddFriend"></span>
                         </div>
                         <div class="list">
@@ -52,13 +55,9 @@
                                 <span>好友申请</span>
                                 <sup class="dot" v-show="haveNotReadApply"></sup>
                             </div>
-                            <div v-for="friend in friendList" :key="friend.id" :title="friend.username" @click="selectFriend(friend)" :class="{current: currentFriend.id===friend.id }">
-                                <el-dropdown  @command="handleDeleteFriend(friend.id)">
-                                    <img :src="friend.avatar" >
-                                    <el-dropdown-menu slot="dropdown" >
-                                        <el-dropdown-item >删除朋友</el-dropdown-item>
-                                    </el-dropdown-menu>
-                                </el-dropdown>
+                            <div v-for="friend in friendList" :key="friend.id" :title="friend.username"
+                                 @click="selectFriend(friend)" :class="{current: currentFriend.id===friend.id }">
+                                <img :src="friend.avatar">
                                 <span>{{friend.username}}</span>
                             </div>
                         </div>
@@ -69,36 +68,37 @@
                 <div class="head">
                     <p>{{currentChat.username}}</p>
                 </div>
-                <div  class="chat-tool">
-                        <div class="content" id="content">
-                            <div  v-for="msg in currentChat.msgList ">
-                                <div v-if="msg.from_id !== info.id" class="others">
-                                    <img :src="currentChat.avatar" />
-                                    <span>{{msg.msg}}</span>
-                                </div>
-                                <div style="text-align: right"  v-if="msg.from_id === info.id">
-                                    <span style="background-color: #9dea6a">{{msg.msg}}</span>
-                                    <img :src="info.avatar" />
-                                </div>
+                <div class="chat-tool">
+                    <div class="content" id="content">
+                        <div v-for="msg in currentChat.msgList ">
+                            <div v-if="msg.from_id !== info.id" class="others">
+                                <img :src="currentChat.avatar"/>
+                                <span>{{msg.msg}}</span>
+                            </div>
+                            <div style="text-align: right" v-if="msg.from_id === info.id">
+                                <span style="background-color: #9dea6a">{{msg.msg}}</span>
+                                <img :src="info.avatar"/>
                             </div>
                         </div>
-                        <div class="tool-list">
-                            <i class="el-icon-picture" title="发送图片"></i>
-                        </div>
-                        <div class="input">
-                            <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="msg"
-                                      class="message" resize="none"	>
-                            </el-input>
-                            <el-button class="send" type="primary" @click="handleSendMsg"  >发送</el-button>
-                        </div>
                     </div>
+                    <div class="tool-list">
+                        <i class="el-icon-picture" title="发送图片"></i>
+                    </div>
+                    <div class="input">
+                        <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="msg"
+                                  class="message" resize="none">
+                        </el-input>
+                        <el-button class="send" type="primary" @click="handleSendMsg">发送</el-button>
+                    </div>
+                </div>
             </div>
             <div class="friend-info" v-show="visible.friendList">
                 <div v-show="friendList.length > 0">
                     <div class="title">
                         <div>
                             <p>
-                                {{currentFriend.username}}<i class="fa fa-venus" style="color: pink" v-show="currentFriend.sex == 0"></i>
+                                {{currentFriend.username}}<i class="fa fa-venus" style="color: pink"
+                                                             v-show="currentFriend.sex == 0"></i>
                                 <i class="fa fa-mars" style="color: blue" v-show="currentFriend.sex == 1"></i>
                             </p>
                             <p>{{currentFriend.age}}</p>
@@ -109,7 +109,7 @@
                     </div>
                     <div class="action">
                         <el-button type="success" @click="handleChat(currentFriend.id)">发送消息</el-button>
-                        <el-button type="danger">删除好友</el-button>
+                        <el-button type="danger" @click="handleDeleteFriend(currentFriend.id)">删除好友</el-button>
                     </div>
                 </div>
             </div>
@@ -117,26 +117,27 @@
         </div>
         <el-dialog title="修改头像" :visible.sync="visible.edit" width="218px" class="dialog">
             <el-upload class="avatar-uploader"
-                    :action="action"
-                    :show-file-list="false"
-                    :on-success="handleAvatarSuccess"
-                    :before-upload="beforeAvatarUpload">
+                       :action="action"
+                       :show-file-list="false"
+                       :on-success="handleAvatarSuccess"
+                       :before-upload="beforeAvatarUpload">
                 <img v-if="info.avatar" :src="info.avatar" class="avatar">
-                <i  class="el-icon-plus avatar-uploader-icon" v-else></i>
+                <i class="el-icon-plus avatar-uploader-icon" v-else></i>
             </el-upload>
         </el-dialog>
         <!--用户搜索申请 start-->
-        <el-dialog :visible.sync="visible.newFriend" width="300px" :show-close="false" custom-class="new-friend" >
+        <el-dialog :visible.sync="visible.newFriend" width="300px" :show-close="false" custom-class="new-friend">
             <span slot="title">
                <el-input placeholder="请输入内容" v-model.trim="search.newFriend" class="input-with-select" size="small">
-                    <el-button slot="append" icon="el-icon-search"  size="mini" @click="handleSearchUser"/>
+                    <el-button slot="append" icon="el-icon-search" size="mini" @click="handleSearchUser"/>
                </el-input>
             </span>
             <div class="user-box">
                 <div v-for="user in userList">
                     <img :src="user.avatar">
                     <span>{{user.username}}</span>
-                    <el-button  :disabled="user.can_apply === false " size="mini"  class="el-icon-plus" type="primary" plain @click="handleAddFriend(user)" />
+                    <el-button :disabled="user.can_apply === false " size="mini" class="el-icon-plus" type="primary"
+                               plain @click="handleAddFriend(user)"/>
                 </div>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -146,19 +147,26 @@
         <!--用户搜索申请 end-->
 
         <!--好友申请列表 start-->
-        <el-dialog :visible.sync="visible.applyList" width="400px" :show-close="false" custom-class="new-friend" >
+        <el-dialog :visible.sync="visible.applyList" width="400px" :show-close="false" custom-class="new-friend">
             <span slot="title">
-                  <el-input  v-model.trim="search.applyList" auto-complete="off"  size="small" prefix-icon="el-icon-search" placeholder="用户名" />
+                  <el-input v-model.trim="search.applyList" auto-complete="off" size="small"
+                            prefix-icon="el-icon-search" placeholder="用户名"/>
             </span>
             <div class="apply-box">
                 <div v-for="apply in filterApplyList">
                     <img :src="apply.avatar">
                     <span>{{apply.username}}</span>
                     <span v-if="apply.reason">({{apply.reason}})</span>
-                    <el-button  @click='handleReject(apply)' size="mini" class="el-icon-error" type="danger" plain v-show="parseInt(apply.status)===0" />
-                    <el-button  @click='handleAgree(apply)' size="mini" class="el-icon-success"  type="primary" plain v-show="parseInt(apply.status)===0" />
-                    <el-button  :disabled="parseInt(apply.status) === 1 " size="mini"   type="primary" plain  v-show="parseInt(apply.status)===1">已同意</el-button>
-                    <el-button  :disabled="parseInt(apply.status) === 2 " size="mini"   type="danger" plain  v-show="parseInt(apply.status)===2">已拒绝</el-button>
+                    <el-button @click='handleReject(apply)' size="mini" class="el-icon-error" type="danger" plain
+                               v-show="parseInt(apply.status)===0"/>
+                    <el-button @click='handleAgree(apply)' size="mini" class="el-icon-success" type="primary" plain
+                               v-show="parseInt(apply.status)===0"/>
+                    <el-button :disabled="parseInt(apply.status) === 1 " size="mini" type="primary" plain
+                               v-show="parseInt(apply.status)===1">已同意
+                    </el-button>
+                    <el-button :disabled="parseInt(apply.status) === 2 " size="mini" type="danger" plain
+                               v-show="parseInt(apply.status)===2">已拒绝
+                    </el-button>
                 </div>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -169,9 +177,13 @@
     </div>
 </template>
 <script>
-  import {avatarUrl, ws, deleteChat, createChat, updateUser, friendList, createApply, deleteFriend, updateApply} from '../api/api'
+  import {
+    avatarUrl, ws, deleteChat, createChat,
+    updateUser, friendList, createApply, deleteFriend, updateApply
+  } from '../api/api'
+
   export default {
-    data () {
+    data() {
       return {
         info: {}, // 个人信息
         msg: '',  // 聊天输入框
@@ -211,18 +223,18 @@
         haveNotReadApply: false
       }
     },
-    updated () {
+    updated() {
       // 消息框移到最底部
       let content = document.getElementById('content')
       content.scrollTop = content.scrollHeight
     },
     computed: {
-      action () {
+      action() {
         let token = localStorage.getItem('token')
         return avatarUrl + '?token=' + token
       },
       // 聊天搜索
-      filterChatList () {
+      filterChatList() {
         if (this.search.chat !== '') {
           return this.chatList.filter((element) => {
             return element.username.indexOf(this.search.chat) !== -1
@@ -231,7 +243,7 @@
         return this.chatList
       },
       // 好友申请搜索
-      filterApplyList () {
+      filterApplyList() {
         if (this.search.applyList !== '') {
           return this.applyList.filter((element) => {
             return element.username.indexOf(this.search.applyList) !== -1
@@ -242,15 +254,22 @@
     },
     methods: {
       // http删除朋友
-      handleDeleteFriend (id) {
+      handleDeleteFriend(id) {
         deleteFriend(id).then(res => {
+          let deleteId = parseInt(id)
           if (parseInt(res.status) === 1) {
             this.handleFriendList()
+            for (let [index, {id}] of this.chatList.entries()) {
+              if (deleteId === parseInt(id)) {
+                this.chatList.slice(index, 1)
+                break
+              }
+            }
           }
         })
       },
       // http删除聊天
-      handleDeleteChat (chatId) {
+      handleDeleteChat(chatId) {
         deleteChat(chatId).then(data => {
           if (parseInt(data.status) === 1) {
             const chatId = data.chatId
@@ -267,7 +286,7 @@
         })
       },
       // 同意好友申请
-      handleAgree (apply) {
+      handleAgree(apply) {
         updateApply({status: 1, id: apply.id}).then(res => {
           if (parseInt(res.status) === 1) {
             this.handleFriendList()
@@ -276,7 +295,7 @@
         })
       },
       // 拒绝好友申请
-      handleReject (apply) {
+      handleReject(apply) {
         updateApply({status: 2, id: apply.id}).then(res => {
           if (parseInt(res.status) === 1) {
             apply.status = 2
@@ -284,7 +303,7 @@
         })
       },
       // 显示好友申请列表
-      showApplyList () {
+      showApplyList() {
         this.visible.applyList = true
         // 设置好友申请已读
         updateUser({id: this.info.id, type: 'applyRead'}).then(res => {
@@ -294,7 +313,7 @@
         })
       },
       // 朋友详情栏点击`发送消息`触发事件
-      handleChat (friendId) {
+      handleChat(friendId) {
         let exist = false
         let chat
         for (let [index, {id}] of this.chatList.entries()) {
@@ -320,19 +339,19 @@
       },
 
       // 选择朋友
-      selectFriend (friend) {
+      selectFriend(friend) {
         this.currentFriend = friend
       },
       // 搜索user函数
-      handleSearchUser () {
+      handleSearchUser() {
         this.send({type: 'userList', search: this.search.newFriend})
       },
       // 新增好友请求
-      handleAddFriend (user) {
+      handleAddFriend(user) {
         this.$prompt(' ', '申请理由', {
           confirmButtonText: '确定',
           cancelButtonText: '取消'
-        }).then(({ value }) => {
+        }).then(({value}) => {
           createApply({targetId: user.id, reason: value}).then(res => {
             if (parseInt(res.status) === 1) {
               this.$set(user, 'can_apply', false)
@@ -341,7 +360,7 @@
         })
       },
       // 获取朋友列表
-      handleFriendList () {
+      handleFriendList() {
         friendList({}).then(res => {
           this.friendList = res.friendList
           if (this.currentFriend.id === '' && this.friendList.length > 0) {
@@ -350,7 +369,7 @@
         })
       },
       // 切换界面
-      switchInterface (type) {
+      switchInterface(type) {
         if (type === 'friend') {
           this.visible.friendList = true
           this.visible.chatList = false
@@ -361,7 +380,7 @@
         }
       },
       // 头像下拉菜单事件
-      handleCommand (type) {
+      handleCommand(type) {
         if (type === 'avatar') {
           this.handleShowEdit()
         }
@@ -370,18 +389,18 @@
         }
       },
       // 注销登陆
-      handleLoginOut () {
+      handleLoginOut() {
         this.socket.close()
         localStorage.setItem('token', '')
         this.$router.push('/')
       },
       // 显示新增好友列表
-      showAddFriend () {
+      showAddFriend() {
         this.visible.newFriend = true
         this.send({type: 'userList', search: this.search.newFriend})
       },
       // webSocket发送消息
-      send (msg) {
+      send(msg) {
         return new Promise((resolve, reject) => {
           if (this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(msg))
@@ -391,7 +410,7 @@
         })
       },
       // 发送聊天消息
-      handleSendMsg () {
+      handleSendMsg() {
         if (this.msg === '') {
           this.$message.error('不能发送空消息!')
           return false
@@ -422,21 +441,21 @@
         })
       },
       // 切换当前聊天对象
-      changeChat (chat) {
+      changeChat(chat) {
         this.currentChat = chat
         this.$set(chat, 'getNew', false)
       },
       // 显示编辑页面
-      handleShowEdit () {
+      handleShowEdit() {
         this.editForm.username = this.info.username
         this.visible.edit = true
       },
       // 头像上传成功事件
-      handleAvatarSuccess (res, file) {
+      handleAvatarSuccess(res, file) {
         this.info.avatar = res.url
       },
       // 头像上传验证
-      beforeAvatarUpload (file) {
+      beforeAvatarUpload(file) {
         const isJPG = file.type === 'image/jpeg'
         const isLt2M = file.size / 1024 / 1024 < 2
         if (!isJPG) {
@@ -448,7 +467,7 @@
         return isJPG && isLt2M
       },
       // 开启ws链接
-      openConnect () {
+      openConnect() {
         let token = localStorage.getItem('token')
         this.socket = new WebSocket(`${ws}?token=${token}`)
         this.socket.onopen = this.onConnect
@@ -456,19 +475,19 @@
         this.socket.onclose = this.onClose
       },
       // 链接成功事件
-      onConnect (ws) {
+      onConnect(ws) {
         this.$message.success(`已成功连接到聊天服务器`)
         this.isConnect = true
       },
       // 断开连接触发函数
-      onClose () {
+      onClose() {
         this.isConnect = false
       },
       // 下线处理函数
-      handleGoOff (data) {
+      handleGoOff(data) {
         let offlineUser
         // 取出下线的用户
-        for (let [index, { id }] of this.friendList.entries()) {
+        for (let [index, {id}] of this.friendList.entries()) {
           if (parseInt(id) === parseInt(data.userId)) {
             this.friendList[index].online = false
             offlineUser = this.friendList.splice(index, 1)[0]
@@ -476,7 +495,7 @@
           }
         }
         // 插入到下线用户队列的最前面
-        for (let [index, { online }] of this.friendList.entries()) {
+        for (let [index, {online}] of this.friendList.entries()) {
           if (online === false) {
             this.friendList.splice(index, 0, offlineUser)
             this.$message.info(`${offlineUser.username}下线了`)
@@ -485,11 +504,11 @@
         }
       },
       // 上线处理函数
-      handleGoOnline (data) {
+      handleGoOnline(data) {
         let onlineUser
         // 取出上线用户
         let flag = false
-        for (let [index, { id }] of this.chatList.entries()) {
+        for (let [index, {id}] of this.chatList.entries()) {
           if (parseInt(id) === parseInt(data.user.id)) {
             this.chatList[index].online = true
             onlineUser = this.chatList.splice(index, 1)[0]
@@ -498,7 +517,7 @@
           }
         }
         // 插入到上线用户队列的最后面
-        for (let [index, { online }] of this.friendList.entries()) {
+        for (let [index, {online}] of this.friendList.entries()) {
           if (online === false) {
             if (flag) {
               this.friendList.splice(index, 0, onlineUser)
@@ -511,22 +530,24 @@
         }
       },
       // 聊天消息接受处理函数
-      handleMsg (data) {
+      handleMsg(data) {
         if ('chat' in data) {
           const chat = data.chat
+          chat.getNew = true
           chat.msgList.push(data.msg)
           this.chatList.push(chat)
         } else {
           for (let [index, {chat_id}] of this.chatList.entries()) {
             if (parseInt(chat_id) === parseInt(data.msg.chat_id)) {
               this.chatList[index].msgList.push(data.msg)
+              this.$set(this.chatList[index], 'getNew', true)
               break
             }
           }
         }
       },
       // 接受消息事件
-      onMessage (ws) {
+      onMessage(ws) {
         let data = JSON.parse(ws.data)
         switch (data.type) {
           case 'chatList': // 聊天列表
@@ -536,13 +557,16 @@
             this.userList = data.userList
             break
 
-          // case 'goOff':   // 下线
-          //   this.handleGoOff(data)
-          //   break
-          // case 'goOnline': // 上线
-          //   this.handleGoOnline(data)
-          //   break
-          case 'msg': // 接受消息
+          case 'msg':
+            // 接受消息
+
+            // case 'goOff':   // 下线
+
+            //   this.handleGoOff(data)
+                      //   break
+                      // case 'goOnline': // 上线
+                      //   this.handleGoOnline(data)
+                      //   break
             this.handleMsg(data)
             break
           case 'forbidden':  // token不正确
@@ -568,18 +592,14 @@
               }
             }
             break
-          case 'agreeSucc':    // 同意好友申请
-            this.handleFriendList()
-            this.$message.success('"' + data.friend.username + '"已经成为你的好友')
-            break
           case 'applySucc':  // 好友申请被同意
-            this.send({type: 'friendList'}) // 重新获取好友列表
+            this.handleFriendList()
             this.$message.success('"' + data.friend.username + '"已经同意你的好友申请')
             break
         }
       }
     },
-    mounted () {
+    mounted() {
       this.openConnect()
       this.info = JSON.parse(localStorage.getItem('user'))
       this.handleFriendList()
@@ -604,24 +624,25 @@
   }
 </script>
 <style scoped rel="stylesheet/sass" lang="sass">
-    $maxHeight : 600px
+    $maxHeight: 600px
     $headHeight: 50px
-    $imageSize : 40px
+    $imageSize: 40px
     .main
         margin-top: 100px
         text-align: center
         min-width: 1366px
-        &>div
+        & > div
             margin: 0 auto
             display: inline-block
-            &>div:first-child
+            & > div:first-child
                 width: 260px
                 display: inline-block
                 float: left
-            &>div:nth-child(n+2)
+            & > div:nth-child(n+2)
                 width: 600px
                 display: inline-block
                 vertical-align: top
+
     .friend-box
         border-left: 1px solid #D8DCE5
         border-top: 1px solid #D8DCE5
@@ -691,7 +712,7 @@
                 .dot
                     position: absolute
                     top: 0px
-                    left: 55px
+                    left: 10px
                     background-color: #fa5555
                     border-radius: 10px
                     color: #fff
@@ -707,7 +728,7 @@
                 overflow: auto
                 height: 530px
                 text-align: left
-                >div
+                > div
                     position: relative
                     padding: 5px 0px 5px 15px
                     height: 40px
@@ -762,11 +783,11 @@
                     text-align: center
                     white-space: nowrap
                     border: 1px solid #fff
-                >div:nth-child(1)
+                > div:nth-child(1)
                     border-bottom: 2px solid #DCDFE6
                 .current
                     background-color: #c6c5c5
-                >div
+                > div
                     text-align: left
                     position: relative
                     padding: 5px 0px 5px 15px
@@ -788,6 +809,7 @@
                         text-align: left
                     &:hover
                         background-color: #c6c6c6
+
     .user-content
         margin-top: -30px
         height: 500px
@@ -813,6 +835,7 @@
 
         .item
             margin: 0px
+
     .avatar-uploader
         .el-upload
             border: 1px dashed #d9d9d9
@@ -822,6 +845,7 @@
             overflow: hidden
         .el-upload:hover
             border-color: #409EFF
+
     .dialog
         .avatar-uploader-icon
             font-size: 28px
@@ -893,11 +917,12 @@
                 i
                     &:hover
                         cursor: pointer
+
     .friend-info
         border: 1px solid #D8DCE5
         height: $maxHeight
         background-color: #f5f5f5
-        >div
+        > div
             width: 80%
             margin: 0 10%
         .title
@@ -925,6 +950,7 @@
             margin-top: 50px
             button:nth-child(2)
                 margin-left: 100px
+
     .new-friend
         input
             width: 200px
