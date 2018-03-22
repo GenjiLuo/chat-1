@@ -3,6 +3,7 @@
 namespace server\ws;
 
 use common\model\FriendApplyModel;
+use common\model\GroupModel;
 use common\model\UserModel;
 use core\interfaces\ServerInterface;
 use common\lib\MyRedis;
@@ -71,43 +72,14 @@ class WsServer implements ServerInterface
                 if ($workId == 0) { // 异步redis 订阅频道，消费http产生的内容
                     $redis = new Redis();
                     $redis->on("message", function (Redis $redis, $message) use ($server) {
-                        if ($message[0]=='message' && $message[1] == 'applyCH') { // 好友申请
-                            //如果申请目标在线,推送全新的好友申请列表
-                            $applyId = $message[2];
-                            $applyModel = new FriendApplyModel($server->db);
-                            $apply = $applyModel->selectOne(['id' => $applyId]);
-                            if ($server->redis->sIsMember("onlineList", $apply['target_id'])) {
-                                $targetFd = $server->redis->hGet('userId:userFd', $apply['target_id']);
-                                $applyList = $applyModel->findWithUser(['target_id' => $apply['target_id']]);
-                                $server->push($targetFd, json_encode(['applyList' => $applyList,'type'=>'applyList']));
-                            }
-                        }
-                        if ($message[0]=='message' && $message[1] == 'agreeCH') { // 同意好友申请
-                            //如果申请人在线,推送好友申请被同意消息
-                            $applyId = $message[2];
-                            $applyModel = new FriendApplyModel($server->db);
-                            $apply = $applyModel->selectOne(['id' => $applyId]);
-                            if ($server->redis->sIsMember("onlineList", $apply['sponsor_id'])) {
-                                $sponsorFd = $server->redis->hGet('userId:userFd',  $apply['sponsor_id']);
-                                $friend = (new UserModel($server->db))->findOne(['id'=>$apply['target_id']]);
-                                $server->push($sponsorFd, json_encode(['friend' => $friend,'type'=>'applySucc']));
-                            }
-                        }
-                        if ($message[0]=='message' && $message[1] == 'closeFD') { //重复连接关闭已连接
-                            $closeFd = $message[2];
-                            if ($server->exist($closeFd)) {
-                                //此处有可能消息没发送就关闭了连接
-                                //todo
-                                $server->push($closeFd, json_encode(['type' => 'repeat']));
-                                $server->close($closeFd);
-                            }
-                        }
+                        App::$comp->router->dispatch(['server' => $server, 'data'=>$message], 'channel');
                     });
                     $redis->connect(REDIS_HOST, REDIS_PORT, function (Redis $redis, $result) {
                         if ($result) {
                             $redis->subscribe("applyCH");
                             $redis->subscribe("agreeCH");
                             $redis->subscribe("closeFD");
+                            $redis->subscribe("createGroup");
                         }
                     });
                 }

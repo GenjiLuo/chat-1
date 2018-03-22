@@ -41,6 +41,9 @@ export const deleteChat = id => {
 export const createChat = params => {
   return axios.post(`${base}/chat`, qs.stringify(params)).then(res => res.data)
 }
+export const updateChat = params => {
+  return axios.put(`${base}/chat/${params.id}`, qs.stringify(params)).then(res => res.data)
+}
 export const updateUser = params => {
   return axios.put(`${base}/user/${params.id}`, qs.stringify(params)).then(res => res.data)
 }
@@ -55,5 +58,8 @@ export const createApply = params => {
 }
 export const updateApply = params => {
   return axios.put(`${base}/apply/${params.id}`, qs.stringify(params)).then(res => res.data)
+}
+export const createGroup = params => {
+  return axios.post(`${base}/group`, qs.stringify(params)).then(res => res.data)
 }
 export const avatarUrl = `${base}/avatar`

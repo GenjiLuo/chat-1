@@ -43,7 +43,7 @@ abstract class Action
     public $workerId;
     /**
      * @var array
-     * taskHandle/channel 参数
+     * taskHandle/channel(message) 参数
      */
     public $data;
 
@@ -55,7 +55,7 @@ abstract class Action
     const TYPE_APPLY_LIST = "applyList";
     const TYPE_APPLY_SUCC = 'applySucc';
     const TYPE_AGREE_SUCC = 'agreeSucc';
-    const TYPE_NEW_CHAT = 'newChat';
+    const TYPE_NEW_GROUP ='newGroup';
 
     /**
      * Action constructor.
@@ -135,15 +135,6 @@ abstract class Action
         $this->push($fd, $userList, self::TYPE_USER_LIST);
     }
 
-    /**
-     * @param int $fd
-     * @param array $friendList
-     * 发送朋友列表
-     */
-    public function pushFriendList(int $fd, array $friendList)
-    {
-        $this->push($fd, $friendList, self::TYPE_FRIEND_LIST);
-    }
 
     /**
      * @param int $fd
@@ -158,10 +149,10 @@ abstract class Action
     /**
      * @param int $fd
      * @param array $data
-     * 申请好友成功
+     * 同意好友申请成功
      */
-    public function pushApplySucc(int $fd,array $data){
-        $this->push($fd,$data,self::TYPE_APPLY_SUCC);
+    public function pushAgreeSucc(int $fd,array $data){
+        $this->push($fd,$data,self::TYPE_AGREE_SUCC);
     }
 
     /**
@@ -169,19 +160,10 @@ abstract class Action
      * @param array $data
      * 同意好友申请成功
      */
-    public function pushAgreeSucc(int $fd,array $data){
-        $this->push($fd,$data,self::TYPE_AGREE_SUCC);
+    public function pushNewGroup(int $fd,array $data){
+        $this->push($fd,$data,self::TYPE_NEW_GROUP);
     }
 
-
-    /**
-     * @param int $fd
-     * @param array $data
-     * 新建聊天
-     */
-    public function pushNewChat(int $fd,array $data){
-        $this->push($fd,$data,self::TYPE_NEW_CHAT);
-    }
 
     /**
      * @param array $data

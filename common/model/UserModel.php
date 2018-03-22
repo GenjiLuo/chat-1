@@ -54,4 +54,22 @@ class UserModel extends DB
         });
         return $users;
     }
+
+    /**
+     * @param $groupId
+     * @return array|bool
+     */
+    public function findByGroup($groupId){
+        $where = ['group_id'=>$groupId];
+        $join = [
+            "[>]" . GroupUserModel::$tableName => ['id' => 'user_id']
+        ];
+        $fields =['username', 'user.id', 'avatar', 'sex', 'age'];
+        $result = $this->medoo->select(self::$tableName, $join, $fields, $where);
+        array_walk($result, function (&$v, $k) {
+            $v['avatar'] = BASE_URL . self::$defaultPath . $v['avatar'];
+        });
+        var_dump($this->medoo->log());
+        return $result;
+    }
 }

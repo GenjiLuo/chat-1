@@ -4,5 +4,6 @@ return [
     "open"=>\server\ws\action\Open::class,
     "request"=>"",
     "close"=>\server\ws\action\Close::class,
-    'task'=>\server\ws\action\Task::class
+    'task'=>\server\ws\action\Task::class,
+    'channel'=>\server\ws\action\Channel::class
 ];

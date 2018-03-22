@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Chat from '@/components/Chat'
-import Login from '@/components/Login'
-import Register from '@/components/Register'
+import Chat from '@/view/Chat'
+import Login from '@/view/Login'
+import Register from '@/view/Register'
 import {loginByToken} from '../api/api.js'
 import Store from '../store/index'
 Vue.use(Router)

@@ -11,6 +11,7 @@ CREATE TABLE `message` (
   `avatar` varchar(255) DEFAULT NULL,
   `time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `msg` varchar(255) DEFAULT NULL,
+  `is_read` TINYINT DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
@@ -59,9 +60,9 @@ CREATE TABLE `chat`(
 -- ----------------------------
 DROP Table if EXISTS `group`;
 CREATE TABLE `group`(
-  `id` INT not NULL AUTO_INCREMENT,
+  `group_id` INT not NULL AUTO_INCREMENT,
   `sponsor_id` INT NOT NULL COMMENT '创建人id',
-  `user_ids` VARCHAR(255) NOT NULL  COMMENT '群组userID数组',
+  `group_name` VARCHAR(20) NOT NULL DEFAULT '' COMMENT '群组名称',
   `created_at` DATETIME not NULL ,
   PRIMARY KEY (`id`)
 )ENGINE =Innodb
@@ -69,6 +70,20 @@ CREATE TABLE `group`(
  DEFAULT CHARSET=utf8
  COMMENT '群组表';
 
+-- ----------------------------
+-- Table structure for group
+-- ----------------------------
+DROP Table if EXISTS `group_user`;
+CREATE TABLE `group_user`(
+  `id` INT not NULL AUTO_INCREMENT,
+  `group_id` INT NOT NULL,
+  `user_id` INT not NULL,
+  `created_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`)
+)ENGINE =Innodb
+  AUTO_INCREMENT=1
+  DEFAULT CHARSET=utf8
+  COMMENT '群组人员表';
 -- ----------------------------
 -- Table structure for user_friend
 -- ----------------------------

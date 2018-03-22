@@ -27,19 +27,29 @@
                         <div class="head">
                             <el-input size="small" v-model="search.chat" class="search" prefix-icon="el-icon-search"
                                       placeholder="用户名"/>
-                            <span class="el-icon-plus" title="新建聊天群组"></span>
+                            <span class="el-icon-plus" title="新建聊天群组" @click="showCreateGroup"></span>
                         </div>
                         <div class="list">
-                            <div v-for="chat in filterChatList" :key="chat.id" :title="chat.username"
-                                 @click="changeChat(chat)" :class="{current: currentChat.id===chat.id }">
-                                <el-dropdown @command="handleDeleteChat(chat.chat_id)">
-                                    <img :src="chat.avatar" :class="{offline:!chat.online}">
+                            <div v-for="chat in filterChatList" :key="chat.id"
+                                 @click="changeChat(chat)" :class="{current: currentChat.chat_id===chat.chat_id }">
+                                <el-dropdown @command="handleDeleteChat(chat.chat_id)" v-if="parseInt(chat.type) === 0">
+                                    <el-badge :value="chat.notReadNum">
+                                        <img :src="chat.avatar" :class="{offline:!chat.online}">
+                                    </el-badge>
                                     <el-dropdown-menu slot="dropdown">
                                         <el-dropdown-item>删除聊天</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </el-dropdown>
-                                <span>{{chat.username}}</span>
-                                <sup class="dot" v-if="chat.getNew===true"></sup>
+                                <el-dropdown @command="handleDeleteChat(chat.chat_id)" v-if="parseInt(chat.type) === 1">
+                                    <el-badge :value="chat.notReadNum">
+                                        <img src="@/assets/many.png" >
+                                    </el-badge>
+                                    <el-dropdown-menu slot="dropdown">
+                                        <el-dropdown-item>退出群组</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </el-dropdown>
+                                <span v-if="parseInt(chat.type) === 0">{{chat.username}}</span>
+                                <span v-if="parseInt(chat.type) === 1">{{chat.group_name}}</span>
                             </div>
                         </div>
                     </div>
@@ -66,13 +76,15 @@
             </div>
             <div class="msg-box" v-show="visible.chatList">
                 <div class="head">
-                    <p>{{currentChat.username}}</p>
+                    <p v-if="parseInt(currentChat.type) === 0">{{currentChat.username}}</p>
+                    <p v-if="parseInt(currentChat.type) === 1">{{currentChat.group_name}}</p>
                 </div>
                 <div class="chat-tool">
                     <div class="content" id="content">
                         <div v-for="msg in currentChat.msgList ">
                             <div v-if="msg.from_id !== info.id" class="others">
-                                <img :src="currentChat.avatar"/>
+                                <img :src="currentChatAvatar(msg.from_id)" v-if="parseInt(currentChat.type) === 1"/>
+                                <img :src="currentChat.avatar" v-if="parseInt(currentChat.type) === 0"/>
                                 <span>{{msg.msg}}</span>
                             </div>
                             <div style="text-align: right" v-if="msg.from_id === info.id">
@@ -96,9 +108,8 @@
                 <div v-show="friendList.length > 0">
                     <div class="title">
                         <div>
-                            <p>
-                                {{currentFriend.username}}<i class="fa fa-venus" style="color: pink"
-                                                             v-show="currentFriend.sex == 0"></i>
+                            <p>{{currentFriend.username}}
+                                <i class="fa fa-venus" style="color: pink" v-show="currentFriend.sex == 0"></i>
                                 <i class="fa fa-mars" style="color: blue" v-show="currentFriend.sex == 1"></i>
                             </p>
                             <p>{{currentFriend.age}}</p>
@@ -174,16 +185,25 @@
             </span>
         </el-dialog>
         <!--好友申请列表 end-->
+
+        <!--创建群组聊天 start-->
+        <el-dialog :visible.sync="visible.createGroup" width="540px" :show-close="false" title="创建群组">
+            <el-transfer :titles="['好友','群组']"	v-model="groupIdList" :data="friendList" :props="groupProps" style="text-align: left"></el-transfer>
+            <span slot="footer" class="dialog-footer">
+                 <el-button type="primary" @click="handleCreateGroup">确定</el-button>
+                <el-button @click="visible.createGroup = false">关闭</el-button>
+            </span>
+        </el-dialog>
+        <!--创建群组聊天 end-->
     </div>
 </template>
 <script>
   import {
-    avatarUrl, ws, deleteChat, createChat,
+    avatarUrl, ws, deleteChat, createChat, createGroup, updateChat,
     updateUser, friendList, createApply, deleteFriend, updateApply
   } from '../api/api'
-
   export default {
-    data() {
+    data () {
       return {
         info: {}, // 个人信息
         msg: '',  // 聊天输入框
@@ -201,12 +221,18 @@
           chatList: true,
           friendList: false,
           newFriend: false,
-          applyList: false
+          applyList: false,
+          createGroup: false
         },
         friendList: [], // 好友列表
         chatList: [],  // 聊天列表
         userList: [],  // 用户列表
         applyList: [], // 好友申请列表
+        groupIdList: [],
+        groupProps: {
+          key: 'id',
+          label: 'username'
+        },
         editForm: {
           username: '',
           avatar: ''
@@ -223,18 +249,18 @@
         haveNotReadApply: false
       }
     },
-    updated() {
+    updated () {
       // 消息框移到最底部
       let content = document.getElementById('content')
       content.scrollTop = content.scrollHeight
     },
     computed: {
-      action() {
+      action () {
         let token = localStorage.getItem('token')
         return avatarUrl + '?token=' + token
       },
       // 聊天搜索
-      filterChatList() {
+      filterChatList () {
         if (this.search.chat !== '') {
           return this.chatList.filter((element) => {
             return element.username.indexOf(this.search.chat) !== -1
@@ -243,7 +269,7 @@
         return this.chatList
       },
       // 好友申请搜索
-      filterApplyList() {
+      filterApplyList () {
         if (this.search.applyList !== '') {
           return this.applyList.filter((element) => {
             return element.username.indexOf(this.search.applyList) !== -1
@@ -253,8 +279,39 @@
       }
     },
     methods: {
+      // 群组聊天对象img
+      currentChatAvatar (friendId) {
+        for (let {id, avatar} of this.currentChat.userList) {
+          if (parseInt(friendId) === parseInt(id)) {
+            return avatar
+          }
+        }
+      },
+      // 创建群组
+      handleCreateGroup () {
+        if (this.groupIdList.length === 0) {
+          this.$alert('请选择群组人员', '提示')
+          return false
+        }
+        this.$prompt('请输入群组名称', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消'
+        }).then(({ value }) => {
+          createGroup({ids: this.groupIdList, name: value}).then(res => {
+            if (parseInt(res.status) === 1) {
+              this.visible.createGroup = false
+              this.groupIdList = []
+            }
+          })
+        })
+      },
+      // 显示创建群组界面
+      showCreateGroup () {
+        console.log(this.friendList)
+        this.visible.createGroup = true
+      },
       // http删除朋友
-      handleDeleteFriend(id) {
+      handleDeleteFriend (id) {
         deleteFriend(id).then(res => {
           let deleteId = parseInt(id)
           if (parseInt(res.status) === 1) {
@@ -269,7 +326,7 @@
         })
       },
       // http删除聊天
-      handleDeleteChat(chatId) {
+      handleDeleteChat (chatId) {
         deleteChat(chatId).then(data => {
           if (parseInt(data.status) === 1) {
             const chatId = data.chatId
@@ -286,7 +343,7 @@
         })
       },
       // 同意好友申请
-      handleAgree(apply) {
+      handleAgree (apply) {
         updateApply({status: 1, id: apply.id}).then(res => {
           if (parseInt(res.status) === 1) {
             this.handleFriendList()
@@ -295,7 +352,7 @@
         })
       },
       // 拒绝好友申请
-      handleReject(apply) {
+      handleReject (apply) {
         updateApply({status: 2, id: apply.id}).then(res => {
           if (parseInt(res.status) === 1) {
             apply.status = 2
@@ -303,7 +360,7 @@
         })
       },
       // 显示好友申请列表
-      showApplyList() {
+      showApplyList () {
         this.visible.applyList = true
         // 设置好友申请已读
         updateUser({id: this.info.id, type: 'applyRead'}).then(res => {
@@ -313,12 +370,12 @@
         })
       },
       // 朋友详情栏点击`发送消息`触发事件
-      handleChat(friendId) {
+      handleChat (friendId) {
         let exist = false
         let chat
         for (let [index, {id}] of this.chatList.entries()) {
           if (parseInt(id) === parseInt(friendId)) {
-            chat = this.chatList[index]// 移动到最上层
+            chat = this.chatList[index] // 移动到最上层
             this.switchInterface('chat')  // 切换到聊天界面
             this.changeChat(chat)    // 将当前聊天对象切换成该聊天
             exist = true
@@ -330,24 +387,23 @@
           createChat({targetId: friendId}).then(res => {
             if (parseInt(res.status) === 1) {
               chat = res.chat
-              this.chatList.push(chat)
+              this.chatList.unshift(chat)
               this.switchInterface('chat')  // 切换到聊天界面
               this.changeChat(chat)    // 将当前聊天对象切换成该聊天
             }
           })
         }
       },
-
       // 选择朋友
-      selectFriend(friend) {
+      selectFriend (friend) {
         this.currentFriend = friend
       },
       // 搜索user函数
-      handleSearchUser() {
+      handleSearchUser () {
         this.send({type: 'userList', search: this.search.newFriend})
       },
       // 新增好友请求
-      handleAddFriend(user) {
+      handleAddFriend (user) {
         this.$prompt(' ', '申请理由', {
           confirmButtonText: '确定',
           cancelButtonText: '取消'
@@ -360,7 +416,7 @@
         })
       },
       // 获取朋友列表
-      handleFriendList() {
+      handleFriendList () {
         friendList({}).then(res => {
           this.friendList = res.friendList
           if (this.currentFriend.id === '' && this.friendList.length > 0) {
@@ -369,7 +425,7 @@
         })
       },
       // 切换界面
-      switchInterface(type) {
+      switchInterface (type) {
         if (type === 'friend') {
           this.visible.friendList = true
           this.visible.chatList = false
@@ -380,7 +436,7 @@
         }
       },
       // 头像下拉菜单事件
-      handleCommand(type) {
+      handleCommand (type) {
         if (type === 'avatar') {
           this.handleShowEdit()
         }
@@ -389,18 +445,18 @@
         }
       },
       // 注销登陆
-      handleLoginOut() {
+      handleLoginOut () {
         this.socket.close()
         localStorage.setItem('token', '')
         this.$router.push('/')
       },
       // 显示新增好友列表
-      showAddFriend() {
+      showAddFriend () {
         this.visible.newFriend = true
         this.send({type: 'userList', search: this.search.newFriend})
       },
       // webSocket发送消息
-      send(msg) {
+      send (msg) {
         return new Promise((resolve, reject) => {
           if (this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(msg))
@@ -410,7 +466,7 @@
         })
       },
       // 发送聊天消息
-      handleSendMsg() {
+      handleSendMsg () {
         if (this.msg === '') {
           this.$message.error('不能发送空消息!')
           return false
@@ -424,7 +480,8 @@
           msg: this.msg,
           type: 'msg',
           from_id: this.info.id,
-          to_id: this.currentChat.id
+          to_id: this.currentChat.target_id,
+          is_read: 1
         }
         this.send(msg).then(() => {
           this.currentChat.msgList.push(msg)
@@ -433,7 +490,7 @@
             if (parseInt(id) === parseInt(this.currentChat.id)) {
               let friend = this.chatList.splice(index, 1)[0]
               this.chatList.unshift(friend)
-              this.$set(this.chatList[index], 'getNew', false)
+              this.chatList[index].notReadNum = 0
               break
             }
           }
@@ -441,21 +498,26 @@
         })
       },
       // 切换当前聊天对象
-      changeChat(chat) {
+      changeChat (chat) {
         this.currentChat = chat
-        this.$set(chat, 'getNew', false)
+        // 消息设置为已读
+        updateChat({id: chat.chat_id}).then(res => {
+          if (parseInt(res.status) === 1) {
+            chat.notReadNum = 0
+          }
+        })
       },
       // 显示编辑页面
-      handleShowEdit() {
+      handleShowEdit () {
         this.editForm.username = this.info.username
         this.visible.edit = true
       },
       // 头像上传成功事件
-      handleAvatarSuccess(res, file) {
+      handleAvatarSuccess (res, file) {
         this.info.avatar = res.url
       },
       // 头像上传验证
-      beforeAvatarUpload(file) {
+      beforeAvatarUpload (file) {
         const isJPG = file.type === 'image/jpeg'
         const isLt2M = file.size / 1024 / 1024 < 2
         if (!isJPG) {
@@ -467,7 +529,7 @@
         return isJPG && isLt2M
       },
       // 开启ws链接
-      openConnect() {
+      openConnect () {
         let token = localStorage.getItem('token')
         this.socket = new WebSocket(`${ws}?token=${token}`)
         this.socket.onopen = this.onConnect
@@ -475,16 +537,16 @@
         this.socket.onclose = this.onClose
       },
       // 链接成功事件
-      onConnect(ws) {
+      onConnect (ws) {
         this.$message.success(`已成功连接到聊天服务器`)
         this.isConnect = true
       },
       // 断开连接触发函数
-      onClose() {
+      onClose () {
         this.isConnect = false
       },
       // 下线处理函数
-      handleGoOff(data) {
+      handleGoOff (data) {
         let offlineUser
         // 取出下线的用户
         for (let [index, {id}] of this.friendList.entries()) {
@@ -504,7 +566,7 @@
         }
       },
       // 上线处理函数
-      handleGoOnline(data) {
+      handleGoOnline (data) {
         let onlineUser
         // 取出上线用户
         let flag = false
@@ -530,24 +592,24 @@
         }
       },
       // 聊天消息接受处理函数
-      handleMsg(data) {
+      handleMsg (data) {
         if ('chat' in data) {
           const chat = data.chat
-          chat.getNew = true
+          chat.notReadNum += 1
           chat.msgList.push(data.msg)
           this.chatList.push(chat)
         } else {
           for (let [index, {chat_id}] of this.chatList.entries()) {
             if (parseInt(chat_id) === parseInt(data.msg.chat_id)) {
               this.chatList[index].msgList.push(data.msg)
-              this.$set(this.chatList[index], 'getNew', true)
+              this.chatList[index].notReadNum += 1
               break
             }
           }
         }
       },
       // 接受消息事件
-      onMessage(ws) {
+      onMessage (ws) {
         let data = JSON.parse(ws.data)
         switch (data.type) {
           case 'chatList': // 聊天列表
@@ -556,17 +618,7 @@
           case 'userList': // 用户列表
             this.userList = data.userList
             break
-
           case 'msg':
-            // 接受消息
-
-            // case 'goOff':   // 下线
-
-            //   this.handleGoOff(data)
-                      //   break
-                      // case 'goOnline': // 上线
-                      //   this.handleGoOnline(data)
-                      //   break
             this.handleMsg(data)
             break
           case 'forbidden':  // token不正确
@@ -596,10 +648,13 @@
             this.handleFriendList()
             this.$message.success('"' + data.friend.username + '"已经同意你的好友申请')
             break
+          case 'newGroup': // 接受新群组
+            this.chatList.push(data.group)
+            break
         }
       }
     },
-    mounted() {
+    mounted () {
       this.openConnect()
       this.info = JSON.parse(localStorage.getItem('user'))
       this.handleFriendList()
@@ -642,7 +697,6 @@
                 width: 600px
                 display: inline-block
                 vertical-align: top
-
     .friend-box
         border-left: 1px solid #D8DCE5
         border-top: 1px solid #D8DCE5
@@ -709,20 +763,6 @@
                     &:hover
                         cursor: pointer
             .list
-                .dot
-                    position: absolute
-                    top: 0px
-                    left: 10px
-                    background-color: #fa5555
-                    border-radius: 10px
-                    color: #fff
-                    display: inline-block
-                    font-size: 12px
-                    height: 8px
-                    width: 8px
-                    text-align: center
-                    white-space: nowrap
-                    border: 1px solid #fff
                 .current
                     background-color: #c6c5c5
                 overflow: auto
