@@ -629,6 +629,7 @@
             this.$alert('你的账号已在别处登陆', '提示', {
               confirmButtonText: '确定',
               callback: () => {
+                this.socket.close()
                 localStorage.setItem('token', '')
                 this.$router.push('/')
               }
@@ -662,7 +663,7 @@
     watch: {
       // 断开连接后的提示
       isConnect: function (newResult, oldResult) {
-        if (newResult === false) {
+        if (newResult === false && this.$router.path ==="/chat") {
           this.$confirm('聊天服务器已断开', '提示', {
             confirmButtonText: '重新连接',
             cancelButtonText: '取消',

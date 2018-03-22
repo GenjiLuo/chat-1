@@ -2,7 +2,8 @@
 使用swoole实现的在线IM，包括一个http服务，一个websocket服务  
 功能上包括 注册，登陆，好友申请（同意拒绝），发送聊天消息，即时推送等等（参考微信PC端,持续更新实现中）  
 后端使用 php + swoole + mysql(聊天消息，用户信息) + redis(用户在线状态等，队列)   
-前端使用 webpack + vue + vue-router + elementUI，界面上参考微信PC端(spa）
+前端使用 webpack + vue + vue-router + elementUI，界面上参考微信PC端(spa)  
+demo  **[Composer](http://119.29.63.161)**
 ## Requirement
 1. PHP >= 7.0
 2. **[Composer](https://getcomposer.org/)**

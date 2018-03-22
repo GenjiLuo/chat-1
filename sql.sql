@@ -6,9 +6,9 @@ SET FOREIGN_KEY_CHECKS=0;
 DROP TABLE IF EXISTS `message`;
 CREATE TABLE `message` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `from` int(11) DEFAULT NULL,
-  `to` int(11) DEFAULT NULL,
-  `avatar` varchar(255) DEFAULT NULL,
+  `from_id` int(11) DEFAULT NULL,
+  `to_id` int(11) DEFAULT NULL,
+  `chat_id` int(11) DEFAULT NULL ,
   `time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `msg` varchar(255) DEFAULT NULL,
   `is_read` TINYINT DEFAULT 0,
@@ -114,7 +114,7 @@ create table `friend_apply`(
   `created_at` DATETIME not null COMMENT '申请时间',
   `is_read` TINYINT not null DEFAULT 0 COMMENT '是否已读',
   `status` TINYINT not NULL DEFAULT 0 COMMENT '状态',
-  `season` VARCHAR(255) NOT NULL  DEFAULT '',
+  `reason` VARCHAR(255) NOT NULL  DEFAULT '',
   PRIMARY KEY (`id`),
   INDEX (`sponsor_id`)
 )ENGINE=innodb

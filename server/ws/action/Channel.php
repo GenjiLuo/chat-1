@@ -67,6 +67,8 @@ class Channel extends Action{
                 $fd  = $redis->hGet("userId:userFd",$val['user_id']);
                 $group = $chatModel->findOneWithGroup(['chat_id'=>$chatId])[0];
                 $group['msgList'] = [];
+                $group['notReadNum'] = 0;
+                $group['online'] = true;
                 $this->pushNewGroup($fd,['group'=>$group]);
             }
         }
