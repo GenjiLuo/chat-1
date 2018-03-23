@@ -81,8 +81,6 @@ class Open extends Action
             foreach ($chatList as $key => $val) {
                 $sortArrOne[$key] = $val['last_chat_time'];
                 $sortArrTwo[$key] = $val['online'];
-                $groupChatList[$key]['notReadNum'] = 0;
-
             }
             array_multisort($sortArrTwo, SORT_DESC, $sortArrOne, SORT_DESC, $chatList);
 

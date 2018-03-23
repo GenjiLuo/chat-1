@@ -65,9 +65,6 @@ class WsServer implements ServerInterface
             // 每个worker各自拥有自己的redis/mysql 连接,在action中通过$this->server->db/redis调用
             $server->redis = App::createObject(MyRedis::class);
             $server->db = App::createObject(Medoo::class);
-            // 设置用户重复登陆时自动断开发送消息通知，每个worker都有自己独立的定时器
-            // 所以设置有多少个worker就会生成多少个定时器并发执行
-            // 只有worker才设置定时器，taskWorker不设置
             if (!$server->taskworker) {
                 if ($workId == 0) { // 异步redis 订阅频道，消费http产生的内容
                     $redis = new Redis();

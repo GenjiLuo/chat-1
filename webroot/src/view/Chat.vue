@@ -457,12 +457,14 @@
       },
       // webSocket发送消息
       send (msg) {
-        return new Promise((resolve, reject) => {
-          if (this.socket.readyState === WebSocket.OPEN) {
+        return new Promise((resolve,reject) => {
+          if (this.socket.readyState === WebSocket.CONNECTING) {
             this.socket.send(JSON.stringify(msg))
             resolve()
+          } else {
+            this.isConnect = false
+            reject()
           }
-          reject(new Error('websocket连接已断开'))
         })
       },
       // 发送聊天消息
@@ -535,6 +537,10 @@
         this.socket.onopen = this.onConnect
         this.socket.onmessage = this.onMessage
         this.socket.onclose = this.onClose
+        this.socket.onerror = this.onError
+      },
+      onError () {
+
       },
       // 链接成功事件
       onConnect (ws) {
