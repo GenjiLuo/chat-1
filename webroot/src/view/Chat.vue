@@ -457,8 +457,9 @@
       },
       // webSocket发送消息
       send (msg) {
+        console.log("haha");
         return new Promise((resolve,reject) => {
-          if (this.socket.readyState === WebSocket.CONNECTING) {
+          if (this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(msg))
             resolve()
           } else {
@@ -637,7 +638,7 @@
               callback: () => {
                 this.socket.close()
                 localStorage.setItem('token', '')
-                this.$router.push('/')
+//                this.$router.push('/')
               }
             })
             break
