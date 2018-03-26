@@ -8,6 +8,14 @@ use core\App;
 
 class Apply extends Auth
 {
+
+    public function index(){
+        $userId = $this->user['id'];
+        $applyModel = App::createObject(FriendApplyModel::class);
+        $list = $applyModel->findWithUser(['user_id'=>$userId]);
+        return ['status'=>1,'applyList'=>$list];
+    }
+
     /**
      * @return array|mixed
      */

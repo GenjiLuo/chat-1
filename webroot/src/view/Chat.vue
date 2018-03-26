@@ -126,16 +126,7 @@
             </div>
 
         </div>
-        <el-dialog title="修改头像" :visible.sync="visible.edit" width="218px" class="dialog">
-            <el-upload class="avatar-uploader"
-                       :action="action"
-                       :show-file-list="false"
-                       :on-success="handleAvatarSuccess"
-                       :before-upload="beforeAvatarUpload">
-                <img v-if="info.avatar" :src="info.avatar" class="avatar">
-                <i class="el-icon-plus avatar-uploader-icon" v-else></i>
-            </el-upload>
-        </el-dialog>
+
         <!--用户搜索申请 start-->
         <el-dialog :visible.sync="visible.newFriend" width="300px" :show-close="false" custom-class="new-friend">
             <span slot="title">
@@ -158,51 +149,46 @@
         <!--用户搜索申请 end-->
 
         <!--好友申请列表 start-->
-        <el-dialog :visible.sync="visible.applyList" width="400px" :show-close="false" custom-class="new-friend">
-            <span slot="title">
-                  <el-input v-model.trim="search.applyList" auto-complete="off" size="small"
-                            prefix-icon="el-icon-search" placeholder="用户名"/>
-            </span>
-            <div class="apply-box">
-                <div v-for="apply in filterApplyList">
-                    <img :src="apply.avatar">
-                    <span>{{apply.username}}</span>
-                    <span v-if="apply.reason">({{apply.reason}})</span>
-                    <el-button @click='handleReject(apply)' size="mini" class="el-icon-error" type="danger" plain
-                               v-show="parseInt(apply.status)===0"/>
-                    <el-button @click='handleAgree(apply)' size="mini" class="el-icon-success" type="primary" plain
-                               v-show="parseInt(apply.status)===0"/>
-                    <el-button :disabled="parseInt(apply.status) === 1 " size="mini" type="primary" plain
-                               v-show="parseInt(apply.status)===1">已同意
-                    </el-button>
-                    <el-button :disabled="parseInt(apply.status) === 2 " size="mini" type="danger" plain
-                               v-show="parseInt(apply.status)===2">已拒绝
-                    </el-button>
-                </div>
-            </div>
-            <span slot="footer" class="dialog-footer">
-                <el-button @click="visible.applyList = false">关闭</el-button>
-            </span>
-        </el-dialog>
-        <!--好友申请列表 end-->
+        <!--<el-dialog :visible.sync="visible.applyList" width="400px" :show-close="false" custom-class="new-friend">-->
+            <!--<span slot="title">-->
+                  <!--<el-input v-model.trim="search.applyList" auto-complete="off" size="small"-->
+                            <!--prefix-icon="el-icon-search" placeholder="用户名"/>-->
+            <!--</span>-->
+            <!--<div class="apply-box">-->
+                <!--<div v-for="apply in filterApplyList">-->
+                    <!--<img :src="apply.avatar">-->
+                    <!--<span>{{apply.username}}</span>-->
+                    <!--<span v-if="apply.reason">({{apply.reason}})</span>-->
+                    <!--<el-button @click='handleReject(apply)' size="mini" class="el-icon-error" type="danger" plain-->
+                               <!--v-show="parseInt(apply.status)===0"/>-->
+                    <!--<el-button @click='handleAgree(apply)' size="mini" class="el-icon-success" type="primary" plain-->
+                               <!--v-show="parseInt(apply.status)===0"/>-->
+                    <!--<el-button :disabled="parseInt(apply.status) === 1 " size="mini" type="primary" plain-->
+                               <!--v-show="parseInt(apply.status)===1">已同意-->
+                    <!--</el-button>-->
+                    <!--<el-button :disabled="parseInt(apply.status) === 2 " size="mini" type="danger" plain-->
+                               <!--v-show="parseInt(apply.status)===2">已拒绝-->
+                    <!--</el-button>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<span slot="footer" class="dialog-footer">-->
+                <!--<el-button @click="visible.applyList = false">关闭</el-button>-->
+            <!--</span>-->
+        <!--</el-dialog>-->
 
-        <!--创建群组聊天 start-->
-        <el-dialog :visible.sync="visible.createGroup" width="540px" :show-close="false" title="创建群组">
-            <el-transfer :titles="['好友','群组']"	v-model="groupIdList" :data="friendList" :props="groupProps" style="text-align: left"></el-transfer>
-            <span slot="footer" class="dialog-footer">
-                 <el-button type="primary" @click="handleCreateGroup">确定</el-button>
-                <el-button @click="visible.createGroup = false">关闭</el-button>
-            </span>
-        </el-dialog>
-        <!--创建群组聊天 end-->
+        <edit-info :visible.sync="visible.edit" :info="info" />
+        <group :visible.sync="visible.createGroup" :friendList="friendList" />
     </div>
 </template>
 <script>
   import {
-    avatarUrl, ws, deleteChat, createChat, createGroup, updateChat,
-    updateUser, friendList, createApply, deleteFriend, updateApply
+    avatarUrl, ws, deleteChat, createChat, updateChat, friendList, createApply, deleteFriend
   } from '../api/api'
+  import group from '../component/group'
+  import editInfo from '../component/editInfo'
+  import ApplyList from '../component/applyList'
   export default {
+    components: {group, editInfo, ApplyList},
     data () {
       return {
         info: {}, // 个人信息
@@ -210,8 +196,7 @@
         search: { // 相关search
           chat: '',
           friend: '',
-          newFriend: '',
-          applyList: ''
+          newFriend: ''
         },
         currentChat: {  // 当前聊天对象
         },
@@ -227,16 +212,6 @@
         friendList: [], // 好友列表
         chatList: [],  // 聊天列表
         userList: [],  // 用户列表
-        applyList: [], // 好友申请列表
-        groupIdList: [],
-        groupProps: {
-          key: 'id',
-          label: 'username'
-        },
-        editForm: {
-          username: '',
-          avatar: ''
-        },
         currentFriend: { // 当前好友
           id: '',
           username: '',
@@ -267,15 +242,6 @@
           })
         }
         return this.chatList
-      },
-      // 好友申请搜索
-      filterApplyList () {
-        if (this.search.applyList !== '') {
-          return this.applyList.filter((element) => {
-            return element.username.indexOf(this.search.applyList) !== -1
-          })
-        }
-        return this.applyList
       }
     },
     methods: {
@@ -286,24 +252,6 @@
             return avatar
           }
         }
-      },
-      // 创建群组
-      handleCreateGroup () {
-        if (this.groupIdList.length === 0) {
-          this.$alert('请选择群组人员', '提示')
-          return false
-        }
-        this.$prompt('请输入群组名称', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消'
-        }).then(({ value }) => {
-          createGroup({ids: this.groupIdList, name: value}).then(res => {
-            if (parseInt(res.status) === 1) {
-              this.visible.createGroup = false
-              this.groupIdList = []
-            }
-          })
-        })
       },
       // 显示创建群组界面
       showCreateGroup () {
@@ -342,32 +290,10 @@
           }
         })
       },
-      // 同意好友申请
-      handleAgree (apply) {
-        updateApply({status: 1, id: apply.id}).then(res => {
-          if (parseInt(res.status) === 1) {
-            this.handleFriendList()
-            apply.status = 1
-          }
-        })
-      },
-      // 拒绝好友申请
-      handleReject (apply) {
-        updateApply({status: 2, id: apply.id}).then(res => {
-          if (parseInt(res.status) === 1) {
-            apply.status = 2
-          }
-        })
-      },
       // 显示好友申请列表
       showApplyList () {
         this.visible.applyList = true
         // 设置好友申请已读
-        updateUser({id: this.info.id, type: 'applyRead'}).then(res => {
-          if (parseInt(res.status) === 1) {
-            this.haveNotReadApply = false
-          }
-        })
       },
       // 朋友详情栏点击`发送消息`触发事件
       handleChat (friendId) {
@@ -457,14 +383,13 @@
       },
       // webSocket发送消息
       send (msg) {
-        console.log("haha");
-        return new Promise((resolve,reject) => {
+        return new Promise((resolve, reject) => {
           if (this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(msg))
             resolve()
           } else {
             this.isConnect = false
-            reject()
+            reject(new Error())
           }
         })
       },
@@ -514,22 +439,6 @@
       handleShowEdit () {
         this.editForm.username = this.info.username
         this.visible.edit = true
-      },
-      // 头像上传成功事件
-      handleAvatarSuccess (res, file) {
-        this.info.avatar = res.url
-      },
-      // 头像上传验证
-      beforeAvatarUpload (file) {
-        const isJPG = file.type === 'image/jpeg'
-        const isLt2M = file.size / 1024 / 1024 < 2
-        if (!isJPG) {
-          this.$message.error('上传头像图片只能是 JPG 格式!')
-        }
-        if (!isLt2M) {
-          this.$message.error('上传头像图片大小不能超过 2MB!')
-        }
-        return isJPG && isLt2M
       },
       // 开启ws链接
       openConnect () {
@@ -670,7 +579,7 @@
     watch: {
       // 断开连接后的提示
       isConnect: function (newResult, oldResult) {
-        if (newResult === false && this.$router.path ==="/chat") {
+        if (newResult === false && this.$router.path === '/chat') {
           this.$confirm('聊天服务器已断开', '提示', {
             confirmButtonText: '重新连接',
             cancelButtonText: '取消',
@@ -883,30 +792,6 @@
 
         .item
             margin: 0px
-
-    .avatar-uploader
-        .el-upload
-            border: 1px dashed #d9d9d9
-            border-radius: 6px
-            cursor: pointer
-            position: relative
-            overflow: hidden
-        .el-upload:hover
-            border-color: #409EFF
-
-    .dialog
-        .avatar-uploader-icon
-            font-size: 28px
-            color: #8c939d
-            width: 178px
-            height: 178px
-            line-height: 178px
-            text-align: center
-        .avatar
-            width: 178px
-            height: 178px
-            display: block
-
     .msg-box
         border: 1px solid #D8DCE5
         height: $maxHeight
