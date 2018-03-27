@@ -88,6 +88,7 @@ class Message extends Action
                 $date = date('Y-m-d H:i:s');
                 $groupModel = new GroupModel($this->server->db);
                 $group = $groupModel->findOneWithUser($chatInfo['target_id']);
+                $chatModel->update(['last_chat_time'=>$date],['target_id' =>$chatInfo['target_id']]);
                 foreach ($group['userIds'] as $key => $val){
                     $groupUserChat = $chatModel->findOneWithGroup(
                         [
@@ -101,7 +102,7 @@ class Message extends Action
                         'chat_id' => $groupUserChat['chat_id'],
                         'time' => $date,
                         'msg' => $data['msg'],
-                        'is_read'=>0
+                        'is_read'=> $userId == $val['user_id'] ? 1: 0
                     ];
                     $messageModel->insert($reverseMsg);
                     if ($val['user_id'] != $userId && $redis->sIsMember("onlineList", $val['user_id'])) { //目标用户在线

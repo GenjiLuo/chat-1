@@ -27,7 +27,7 @@ export const login = params => {
   return axios.put(`${base}/token`, qs.stringify(params)).then(res => res.data)
 }
 export const register = params => {
-  return axios.post(`${base}/user`, qs.stringify(params)).then(res => res.data)
+  return axios.post(`${base}/register`, qs.stringify(params)).then(res => res.data)
 }
 export const checkUsername = params => {
   return axios.get(`${base}/checkUsername`, {params: params}).then(res => res.data)
@@ -45,7 +45,10 @@ export const updateChat = params => {
   return axios.put(`${base}/chat/${params.id}`, qs.stringify(params)).then(res => res.data)
 }
 export const updateUser = params => {
-  return axios.put(`${base}/user/${params.id}`, qs.stringify(params)).then(res => res.data)
+  return axios.put(`${base}/user`, qs.stringify(params)).then(res => res.data)
+}
+export const uerList = params => {
+  return axios.get(`${base}/user`, {params: params}).then(res => res.data)
 }
 export const friendList = params => {
   return axios.get(`${base}/friend`, {params: params}).then(res => res.data)

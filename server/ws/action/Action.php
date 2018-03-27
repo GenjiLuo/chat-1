@@ -47,16 +47,13 @@ abstract class Action
      */
     public $data;
 
-    const TYPE_FRIEND_LIST = "friendList";
-    const TYPE_USER_LIST = 'userList';
     const TYPE_CHAT_LIST = 'chatList';
     const TYPE_GO_ONLINE = "goOnline";
     const TYPE_MESSAGE = "msg";
-    const TYPE_APPLY_LIST = "applyList";
-    const TYPE_APPLY_SUCC = 'applySucc';
+    const TYPE_NEW_APPLY = "newApply";
     const TYPE_AGREE_SUCC = 'agreeSucc';
     const TYPE_NEW_GROUP ='newGroup';
-
+    const TYPE_REPEAT_CONNECT = 'repeatConnect';
     /**
      * Action constructor.
      * @param array $params
@@ -125,25 +122,13 @@ abstract class Action
         $this->push($fd, $chatList, self::TYPE_CHAT_LIST);
     }
 
-    /**
-     * @param int $fd
-     * @param array $userList
-     * 发送用户列表
-     */
-    public function pushUserList(int $fd, array $userList)
-    {
-        $this->push($fd, $userList, self::TYPE_USER_LIST);
-    }
-
 
     /**
      * @param int $fd
-     * @param array $applyList
-     * 发送好友申请列表
      */
-    public function pushApplyList(int $fd, array $applyList)
+    public function pushNewApply(int $fd)
     {
-        $this->push($fd, $applyList, self::TYPE_APPLY_LIST);
+        $this->push($fd, [], self::TYPE_NEW_APPLY);
     }
 
     /**
@@ -164,6 +149,10 @@ abstract class Action
         $this->push($fd,$data,self::TYPE_NEW_GROUP);
     }
 
+
+    public function pushRepectConnect(int $fd){
+        $this->push($fd,[],self::TYPE_REPEAT_CONNECT);
+    }
 
     /**
      * @param array $data

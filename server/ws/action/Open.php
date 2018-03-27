@@ -3,10 +3,8 @@
 namespace server\ws\action;
 
 use common\model\ChatModel;
-use common\model\FriendApplyModel;
 use common\model\MessageModel;
 use common\model\UserModel;
-use server\http\controller\User;
 
 class Open extends Action
 {
@@ -18,6 +16,12 @@ class Open extends Action
         $fd = $this->request->fd;
         if ($user) {
             $userId = $user['id'];
+            // 如果已经登陆且连接ws
+            if($redis->sIsMember("onlineList",$userId)){
+                $oldFd = $redis->hGet("userId:userFd",$userId);
+                $this->pushRepectConnect($oldFd);
+                $this->server->close($oldFd);
+            }
             // 在线用户列表
             $redis->sAdd("onlineList", $userId);
             // 用户id:$fd 关联哈希表
@@ -82,15 +86,11 @@ class Open extends Action
                 $sortArrOne[$key] = $val['last_chat_time'];
                 $sortArrTwo[$key] = $val['online'];
             }
-            array_multisort($sortArrTwo, SORT_DESC, $sortArrOne, SORT_DESC, $chatList);
-
+            // 客户端排序
+            // array_multisort($sortArrTwo, SORT_DESC, $sortArrOne, SORT_DESC, $chatList);
             $this->pushChatList($fd, ["chatList" => $chatList]);
             // 调用task进程广播用户上线信息
             $this->pushTask(['fd' => $fd, 'user' => $user], Task::TASK_ONLINE);
-            // 好友申请列表
-            $applyModel = new FriendApplyModel($this->server->db);
-            $applyList = $applyModel->findWithUser(['target_id' => $userId]);
-            $this->pushApplyList($fd, ['applyList' => $applyList]);
         } else {
             $this->push($fd, [], "forbidden");
         }

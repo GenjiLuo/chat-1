@@ -10,7 +10,7 @@ class Close extends Action{
         $userId = $redis->hGet("userFd:userId" , $this->fd);
         if ($userId) {
             $redis->hDel("userId:userFd" , $userId );
-            $redis->del("userFd:userId" ,$this->fd );
+            $redis->hDel("userFd:userId" ,$this->fd );
             $redis->srem("onlineList", $userId);
         }
         // 调用task进程广播用户下线消息

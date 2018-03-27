@@ -32,23 +32,28 @@
   import {applyList, updateApply, updateUser} from '../api/api'
   export default {
     name: 'apply-list',
-    prop: ['visible', 'notReadApply'],
+    props: ['visible', 'notReadApply'],
     data: function () {
       return {
         search: '',
         applyList: []
       }
     },
-    method: {
+    methods: {
       // 关闭界面
       handleClose () {
         this.$emit('update:visible', false)
+        updateUser({type: 'applyRead'}).then(res => {
+          if (parseInt(res.status) === 1) {
+            this.$emit('update:notReadApply', false)
+          }
+        })
       },
       // 同意好友申请
       handleAgree (apply) {
         updateApply({status: 1, id: apply.id}).then(res => {
           if (parseInt(res.status) === 1) {
-            this.handleFriendList()
+            this.$emit('handleFriendList')
             apply.status = 1
           }
         })
@@ -62,9 +67,15 @@
         })
       },
       handleApplyList () {
-        applyList(res => {
+        applyList().then(res => {
           if (parseInt(res.status) === 1) {
             this.applyList = res.applyList
+            for (let x in this.applyList) {
+              if (parseInt(this.applyList[x].is_read) === 0) {
+                this.$emit('update:notReadApply', true)
+                break
+              }
+            }
           }
         })
       }
@@ -81,11 +92,6 @@
       },
       show () {
         this.handleApplyList()
-        updateUser({id: this.info.id, type: 'applyRead'}).then(res => {
-          if (parseInt(res.status) === 1) {
-            this.haveNotReadApply = false
-          }
-        })
         return this.visible
       }
     }
@@ -97,29 +103,9 @@
     .new-friend
         input
             width: 200px
-        .user-box
-            overflow: auto
-            div
-                height: 40px
-                line-height: 40px
-                text-align: left
-                margin: 8px 0 5px
-                img
-                    border-radius: 5px
-                    height: $imageSize
-                    width: $imageSize
-                span
-                    height: 30px
-                    display: inline-block
-                    vertical-align: top
-                    margin-left: 10px
-                button
-                    vertical-align: top
-                    float: right
-                    margin-top: 6px
-                    margin-left: 10px
         .apply-box
             overflow: auto
+            max-height: 400px
             div
                 height: 40px
                 line-height: 40px

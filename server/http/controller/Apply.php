@@ -9,10 +9,10 @@ use core\App;
 class Apply extends Auth
 {
 
-    public function index(){
+    public function view(){
         $userId = $this->user['id'];
         $applyModel = App::createObject(FriendApplyModel::class);
-        $list = $applyModel->findWithUser(['user_id'=>$userId]);
+        $list = $applyModel->findWithUser(['target_id'=>$userId]);
         return ['status'=>1,'applyList'=>$list];
     }
 
@@ -46,7 +46,7 @@ class Apply extends Auth
      */
     public function update()
     {
-        $applyId= $this->params['id'];
+        $applyId = $this->params['id'];
         $applyModel = App::createObject(FriendApplyModel::class);
         $apply =$applyModel->selectOne(['id'=>$applyId,'target_id'=>$this->user['id']]);
         if($apply){
@@ -63,6 +63,7 @@ class Apply extends Auth
                 }
             }
         }
+        var_dump($applyModel->medoo->log());
         return ['status'=>0];
     }
 }

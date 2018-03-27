@@ -15,22 +15,21 @@ class Channel extends Action{
     }
 
     private function applyCH(){
-        //如果申请目标在线,推送全新的好友申请列表
         $applyId = $this->data[2];
         $applyModel = new FriendApplyModel($this->server->db);
         $apply = $applyModel->selectOne(['id' => $applyId]);
+        //如果申请目标在线,推送全新的好友申请列表
         if ($this->server->redis->sIsMember("onlineList", $apply['target_id'])) {
             $targetFd = $this->server->redis->hGet('userId:userFd', $apply['target_id']);
-            $applyList = $applyModel->findWithUser(['target_id' => $apply['target_id']]);
-            $this->pushApplyList($targetFd, ['applyList' => $applyList,'type'=>'applyList']);
+            $this->pushNewApply($targetFd);
         }
     }
     
     private function agreeCH(){
-        //如果申请人在线,推送好友申请被同意消息
         $applyId = $this->data[2];
         $applyModel = new FriendApplyModel($this->server->db);
         $apply = $applyModel->selectOne(['id' => $applyId]);
+        //如果申请人在线,推送好友申请被同意消息
         if ($this->server->redis->sIsMember("onlineList", $apply['sponsor_id'])) {
             $sponsorFd = $this->server->redis->hGet('userId:userFd',  $apply['sponsor_id']);
             $friend = (new UserModel($this->server->db))->findOne(['id'=>$apply['target_id']]);
@@ -69,6 +68,7 @@ class Channel extends Action{
                 $group['msgList'] = [];
                 $group['notReadNum'] = 0;
                 $group['online'] = true;
+                $group['userList'] = (new UserModel($this->db))->findByGroup($group['group_id']);
                 $this->pushNewGroup($fd,['group'=>$group]);
             }
         }
