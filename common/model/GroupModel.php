@@ -49,4 +49,5 @@ class GroupModel extends DB
         $group['userIds'] = $this->medoo->select(GroupUserModel::$tableName,['user_id'],['group_id'=>$groupId]);
         return $group;
     }
+
 }

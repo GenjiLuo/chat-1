@@ -86,13 +86,12 @@
                     <div class="content" id="content">
                         <div v-for="msg in currentChat.msgList ">
                             <div v-if="msg.from_id !== info.id" class="others">
-                                <img :src="currentChatAvatar(msg.from_id)" v-if="parseInt(currentChat.type) === 1"/>
-                                <img :src="currentChat.avatar" v-if="parseInt(currentChat.type) === 0"/>
+                                <img :src="msg.avatar">
                                 <span>{{msg.msg}}</span>
                             </div>
                             <div style="text-align: right" v-if="msg.from_id === info.id">
                                 <span style="background-color: #9dea6a">{{msg.msg}}</span>
-                                <img :src="info.avatar"/>
+                                <img :src="msg.avatar"/>
                             </div>
                         </div>
                     </div>
@@ -195,6 +194,7 @@
     computed: {
       // 聊天搜索
       filterChatList () {
+        console.log(this.chatList)
         this.chatList = this.chatList.sort((a, b) => {
           if (a.online > b.online) {
             return -1
@@ -221,14 +221,6 @@
       }
     },
     methods: {
-      // 群组聊天对象img
-      currentChatAvatar (friendId) {
-        for (let {id, avatar} of this.currentChat.userList) {
-          if (parseInt(friendId) === parseInt(id)) {
-            return avatar
-          }
-        }
-      },
       // http删除朋友
       handleDeleteFriend (id) {
         this.$confirm('删除好友也会删除与该好友的聊天记录, 是否继续?', '提示', {
@@ -359,7 +351,8 @@
           type: 'msg',
           from_id: this.info.id,
           to_id: this.currentChat.target_id,
-          is_read: 1
+          is_read: 1,
+          avatar: this.info.avatar
         }
         this.send(msg).then(() => {
           this.currentChat.msgList.push(msg)
@@ -371,11 +364,13 @@
       changeChat (chat) {
         this.currentChat = chat
         // 消息设置为已读
-        updateChat({id: chat.chat_id}).then(res => {
-          if (parseInt(res.status) === 1) {
-            chat.notReadNum = 0
-          }
-        })
+        if (chat.notReadNum > 0) {
+          updateChat({id: chat.chat_id}).then(res => {
+            if (parseInt(res.status) === 1) {
+              chat.notReadNum = 0
+            }
+          })
+        }
       },
 
       // 开启ws链接
@@ -507,21 +502,20 @@
       this.handleFriendList()
     },
     watch: {
-      // 断开连接后的提示
-      // isConnect: function (newResult, oldResult) {
-      //   if (newResult === false && this.$route.path === '/chat') {
-      //     this.$confirm('聊天服务器已断开', '提示', {
-      //       confirmButtonText: '重新连接',
-      //       cancelButtonText: '取消',
-      //       type: 'error'
-      //     }).then(() => {
-      //       this.openConnect()
-      //     }).catch(() => {
-      //       localStorage.setItem('token', '')
-      //       this.$router.push('/')
-      //     })
-      //   }
-      // }
+      isConnect: function (newResult, oldResult) {
+        if (newResult === false && this.$route.path === '/chat' && this.visible.repeatConnect === false) {
+          this.$confirm('聊天服务器已断开', '提示', {
+            confirmButtonText: '重新连接',
+            cancelButtonText: '取消',
+            type: 'error'
+          }).then(() => {
+            this.openConnect()
+          }).catch(() => {
+            localStorage.setItem('token', '')
+            this.$router.push('/')
+          })
+        }
+      }
     }
   }
 </script>

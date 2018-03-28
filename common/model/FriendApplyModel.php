@@ -72,8 +72,6 @@ class FriendApplyModel extends DB
         return false;
     }
 
-
-
     /**
      * @param $applyId
      * @return bool|\PDOStatement

@@ -76,8 +76,9 @@ class Message extends Action
                 ];
                 $messageModel->insert($reverseMsg);
                 if ($redis->sIsMember("onlineList", $chatInfo['target_id'])) { //目标用户在线
-                    $data['owner'] = false;
+                    $reverseMsg['avatar'] = $data['avatar'];
                     $toFd = $redis->hGet("userId:userFd", $chatInfo['target_id']);
+
                     if(isset($newChat)){
                         $this->pushMessage($toFd, ['msg'=>$reverseMsg,'chat'=>$newChat]);
                     }else{
@@ -106,7 +107,7 @@ class Message extends Action
                     ];
                     $messageModel->insert($reverseMsg);
                     if ($val['user_id'] != $userId && $redis->sIsMember("onlineList", $val['user_id'])) { //目标用户在线
-                        $data['owner'] = false;
+                        $reverseMsg['avatar'] = $data['avatar'];
                         $toFd = $redis->hGet("userId:userFd", $val['user_id']);
                         $this->pushMessage($toFd, ['msg'=>$reverseMsg]);
                     }
@@ -115,35 +116,4 @@ class Message extends Action
         }
     }
 
-
-    /**
-     * @param $data
-     * 获取用户列表
-     */
-    private function userList($data)
-    {
-        $userModel = new UserModel($this->server->db);
-        $userId = $this->server->redis->hGet("userFd:userId", $this->frame->fd);
-        $userList = $userModel->findAll(
-            [
-                'username[~]' => '%' . $data['search'] . '%',
-                'id[!]' => $userId,
-                'LIMIT' => 20
-            ]
-        );
-        $friendModel = new UserFriendModel($this->server->db);
-        $applyModel = new FriendApplyModel($this->server->db);
-        foreach ($userList as $key => &$user) {
-            //检查是否已经是朋友
-            if ($friendModel->isFriend($userId, $user['id'])) {
-                $user['can_apply'] = false;
-                continue;
-            }
-            //检查是否申请中
-            if ($applyModel->isApplying($userId, $user['id'])) {
-                $user['can_apply'] = false;
-            }
-            $this->pushUserList($this->frame->fd, ['userList' => $userList]);
-        }
-    }
 }

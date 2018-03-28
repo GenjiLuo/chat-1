@@ -8,14 +8,14 @@ class Channel extends Action{
     
     public function handle()
     {
-        if($this->data[0] ==="message"){
+        if($this->data[0] === "message"){
             $method = $this->data[1];
-            $this->$method();
+            $this->$method($this->data[2]);
         }
     }
 
-    private function applyCH(){
-        $applyId = $this->data[2];
+    private function applyCH($data){
+        $applyId = $data;
         $applyModel = new FriendApplyModel($this->server->db);
         $apply = $applyModel->selectOne(['id' => $applyId]);
         //如果申请目标在线,推送全新的好友申请列表
@@ -25,8 +25,8 @@ class Channel extends Action{
         }
     }
     
-    private function agreeCH(){
-        $applyId = $this->data[2];
+    private function agreeCH($data){
+        $applyId = $data;
         $applyModel = new FriendApplyModel($this->server->db);
         $apply = $applyModel->selectOne(['id' => $applyId]);
         //如果申请人在线,推送好友申请被同意消息
@@ -37,8 +37,8 @@ class Channel extends Action{
         }
     }
 
-    private function closeFD(){
-        $closeFd = $this->data[2];
+    private function closeFD($data){
+        $closeFd = $data;
         if ($this->server->exist($closeFd)) {
             //此处有可能消息没发送就关闭了连接
             //todo
@@ -47,8 +47,8 @@ class Channel extends Action{
         }
     }
 
-    private function createGroup(){
-        $groupId = $this->data[2];
+    private function createGroup($data){
+        $groupId = $data;
         $groupModel = new GroupModel($this->server->db);
         $group = $groupModel->findOneWithUser($groupId);
         $time = date("Y-m-d H:i:s");
@@ -68,7 +68,7 @@ class Channel extends Action{
                 $group['msgList'] = [];
                 $group['notReadNum'] = 0;
                 $group['online'] = true;
-                $group['userList'] = (new UserModel($this->db))->findByGroup($group['group_id']);
+                $group['userList'] = (new UserModel($this->server->db))->findByGroup($group['group_id']);
                 $this->pushNewGroup($fd,['group'=>$group]);
             }
         }

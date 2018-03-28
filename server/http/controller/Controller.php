@@ -79,8 +79,6 @@ abstract class Controller
 
     public function options()
     {
-        $this->response->header("Access-Control-Allow-Origin","*");
-        $this->response->header("Access-Control-Allow-Methods","PUT,POST,DELETE,OPTIONS,GET");
         return "";
     }
 

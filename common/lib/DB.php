@@ -80,4 +80,9 @@ class DB {
         return $pdo->rowCount();
     }
 
+    public function __destruct()
+    {
+        $this->medoo->close();
+    }
+
 }

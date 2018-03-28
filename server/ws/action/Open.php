@@ -39,7 +39,7 @@ class Open extends Action
                 } else {
                     $userChatList[$key]['online'] = false;
                 }
-                $msgList = (new MessageModel($this->server->db))->find([
+                $msgList = (new MessageModel($this->server->db))->findWithAvatar([
                         "OR #1" => [
                             "AND #1" => ["from_id" => $val["target_id"], "to_id" => $userId],
                             "AND #2" => ["from_id" => $userId, "to_id" => $val["target_id"]],
@@ -62,7 +62,7 @@ class Open extends Action
             $groupChatList = $chatModel->findOneWithGroup(['user_id' => $userId]);
             foreach ($groupChatList as $key => $val) {
                 $groupChatList[$key]['online'] = true;
-                $msgList = (new MessageModel($this->server->db))->find([
+                $msgList = (new MessageModel($this->server->db))->findWithAvatar([
                         "to_id" => $val["target_id"],
                         'chat_id' => $val['chat_id'],
                         "LIMIT" => 20,

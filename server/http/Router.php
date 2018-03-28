@@ -86,12 +86,6 @@ class Router
             if (is_callable($callBack)) {
                 $result = call_user_func($callBack, $request, $response);
             }
-            if (is_string($callBack)) {
-                $controller = new $callBack($request, $response);
-                if ($controller instanceof Controller) {
-                    $result = $controller->run();
-                }
-            }
             if (isset($result) && $result !== false) {
                 $response->end($result);
                 return true;
@@ -108,8 +102,11 @@ class Router
             if (class_exists($controller)) {
                 $controller = new $controller($request, $response);
                 if ($controller instanceof Controller) {
-                    $response->end($controller->run($param));
-                    return true;
+                    $result = $controller->run($param);
+                    if($result !== false ){
+                        $response->end($result);
+                        return true;
+                    }
                 }
             }
         }

@@ -69,7 +69,20 @@ class UserModel extends DB
         array_walk($result, function (&$v, $k) {
             $v['avatar'] = BASE_URL . self::$defaultPath . $v['avatar'];
         });
-        var_dump($this->medoo->log());
         return $result;
     }
+
+    /**
+     * @param $id
+     * @return string
+     */
+    public function findAvatarById($id){
+        $users = $this->medoo->select(self::$tableName, ['avatar'], ['id'=>$id]);
+        if(isset($users[0])){
+            return BASE_URL . self::$defaultPath . $users[0]['avatar'];
+        }
+        return "";
+
+    }
+
 }
