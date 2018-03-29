@@ -5,6 +5,12 @@ use common\lib\exception\ForbiddenException;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use common\lib\CResponse;
+
+/**
+ * Class Controller
+ * @package server\http\controller
+ * 控制器基类
+ */
 abstract class Controller
 {
     /**

@@ -20,8 +20,6 @@ class Chat extends Auth
         if ($id) {
             $db = App::createObject(Medoo::class);
             $result = (new ChatModel($db))->deleteChat($id,$this->user['id']);
-            $redis = App::createObject(MyRedis::class);
-            $redis->publish("quitGroup",$id);
             if ($result) {
                 return ['status' => 1, 'chatId' => $id];
             }

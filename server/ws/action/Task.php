@@ -2,6 +2,8 @@
 
 namespace server\ws\action;
 
+use common\model\ChatModel;
+
 class Task extends Action
 {
 
@@ -27,9 +29,17 @@ class Task extends Action
      */
     private function handleOnline()
     {
-        foreach ($this->server->connections as $userFd) {
-            if ($userFd == $this->data['fd']) continue; // 排除掉自己
-            $this->push($userFd, ['user' => $this->data['user']], Action::TYPE_GO_ONLINE);
+        $userId = $this->data['userId'];
+        // 查找所有跟上线用户有聊天关系的人
+        $chatModel = new ChatModel($this->server->db);
+        $chatList = $chatModel->selectAll(['target_id'=>$userId,'type'=>ChatModel::TYPE_FRIEND]);
+        foreach ($chatList as $k => $chat){
+            $redis = $this->server->redis;
+            // 如果在线则发送好友上线通知
+            if($redis->sIsMember("onlineList",$chat['user_id'])){
+                $fd = $redis->hGet("userId:userFd",$chat['user_id']);
+                $this->push($fd,['chatId'=>$chat['chat_id']],Action::TYPE_GO_ONLINE);
+            }
         }
         $this->server->finish("online task finish " . PHP_EOL);
     }
@@ -39,10 +49,17 @@ class Task extends Action
      */
     private function handleOffLine()
     {
-        foreach ($this->server->connections as $onlineFd) {
-            //此时$server->connections还未移除当前关掉的fd,需要自己排除掉
-            if ($this->data['fd'] == $onlineFd) continue;
-            $this->push($onlineFd, ['userId' => $this->data['userId']], 'goOff');
+        $userId = $this->data['userId'];
+        // 查找所有跟下线用户有聊天关系的人
+        $chatModel = new ChatModel($this->server->db);
+        $chatList = $chatModel->selectAll(['target_id'=>$userId,'type'=>ChatModel::TYPE_FRIEND]);
+        foreach ($chatList as $k => $chat){
+            $redis = $this->server->redis;
+            // 如果在线则发送好友上线通知
+            if($redis->sIsMember("onlineList",$chat['user_id'])){
+                $fd = $redis->hGet("userId:userFd",$chat['user_id']);
+                $this->push($fd,['chatId'=>$chat['chat_id']],Action::TYPE_GO_OFFLINE);
+            }
         }
         $this->server->finish("offline task finish " . PHP_EOL);
     }

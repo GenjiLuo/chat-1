@@ -52,8 +52,8 @@
               if (parseInt(res.status) === 1) {
                 localStorage.setItem('token', res.token)
                 this.$store.commit('setToken', {token: res.token})
-                console.log(this.$store.state.token)
                 localStorage.setItem('user', JSON.stringify(res.user))
+                this.$store.commit('setInfo', res.user)
                 this.$router.push('/chat')
               } else {
                 this.$message.error('账号或密码错误')
@@ -62,9 +62,6 @@
           }
         })
       }
-    },
-    mounted () {
-
     }
   }
 </script>

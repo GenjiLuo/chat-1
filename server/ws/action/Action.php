@@ -48,9 +48,10 @@ abstract class Action
     public $data;
 
     const TYPE_CHAT_LIST = 'chatList';
-    const TYPE_GO_ONLINE = "goOnline";
-    const TYPE_MESSAGE = "msg";
-    const TYPE_NEW_APPLY = "newApply";
+    const TYPE_GO_ONLINE = 'goOnline';
+    const TYPE_GO_OFFLINE ='goOffLine';
+    const TYPE_MESSAGE = 'msg';
+    const TYPE_NEW_APPLY = 'newApply';
     const TYPE_AGREE_SUCC = 'agreeSucc';
     const TYPE_NEW_GROUP ='newGroup';
     const TYPE_REPEAT_CONNECT = 'repeatConnect';

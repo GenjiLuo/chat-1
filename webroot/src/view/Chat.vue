@@ -1,5 +1,5 @@
 <template>
-    <div class="main">
+    <div class="main" >
         <div>
             <div>
                 <div class="friend-box">
@@ -7,7 +7,7 @@
                         <el-dropdown @command="handleCommand">
                             <span class="el-dropdown-link">
                                 <div class="avatar">
-                                <img :src="info.avatar">
+                                <img :src="avatar">
                                 </div>
                             </span>
                             <el-dropdown-menu slot="dropdown">
@@ -32,20 +32,21 @@
                         <div class="list">
                             <div v-for="chat in filterChatList" :key="chat.id"
                                  @click="changeChat(chat)" :class="{current: currentChat.chat_id===chat.chat_id }">
-                                <el-dropdown @command="handleDeleteChat(chat.chat_id)" v-if="parseInt(chat.type) === 0">
+                                <el-dropdown @command="handleChatComment" v-if="parseInt(chat.type) === 0">
                                     <el-badge :value="chat.notReadNum">
                                         <img :src="chat.avatar" :class="{offline:!chat.online}">
                                     </el-badge>
                                     <el-dropdown-menu slot="dropdown">
-                                        <el-dropdown-item>删除聊天</el-dropdown-item>
+                                        <el-dropdown-item :command="{type: 'delete', data: chat.chat_id}">删除聊天</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </el-dropdown>
-                                <el-dropdown @command="handleDeleteChat(chat.chat_id)" v-if="parseInt(chat.type) === 1">
+                                <el-dropdown @command="handleChatComment" v-if="parseInt(chat.type) === 1">
                                     <el-badge :value="chat.notReadNum">
                                         <img src="@/assets/many.png" >
                                     </el-badge>
                                     <el-dropdown-menu slot="dropdown">
-                                        <el-dropdown-item>退出群组</el-dropdown-item>
+                                        <el-dropdown-item :command="{type: 'userList', data: chat.userList}">群组人员</el-dropdown-item>
+                                        <el-dropdown-item :command="{type: 'delete', data: chat.chat_id}">退出群组</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </el-dropdown>
                                 <span v-if="parseInt(chat.type) === 0">{{chat.username}}</span>
@@ -78,7 +79,7 @@
                 <div class="head">
                     <p v-if="parseInt(currentChat.type) === 0">{{currentChat.username}}</p>
                     <p v-if="parseInt(currentChat.type) === 1" title="">{{currentChat.group_name}}
-                        (<span v-for="user,index in currentChat.userList" v-if="user.username !== info.username">{{user.username}}<span v-if="index < currentChat.userList.length - 1">,</span>
+                        (<span v-for="user,index in currentChat.userList" v-if="user.username !== info.username">{{user.username}}<span v-if="index < currentChat.userList.length - 2">,</span>
                         </span>)
                     </p>
                 </div>
@@ -87,10 +88,12 @@
                         <div v-for="msg in currentChat.msgList ">
                             <div v-if="msg.from_id !== info.id" class="others">
                                 <img :src="msg.avatar">
-                                <span>{{msg.msg}}</span>
+                                <span v-html="linkMsg(msg.msg)" v-if="isLink(msg.msg)"></span>
+                                <span  v-if="!isLink(msg.msg)">{{msg.msg}}</span>
                             </div>
                             <div style="text-align: right" v-if="msg.from_id === info.id">
-                                <span style="background-color: #9dea6a">{{msg.msg}}</span>
+                                <span style="background-color: #9dea6a" v-html="linkMsg(msg.msg)" v-if="isLink(msg.msg)"></span>
+                                <span style="background-color: #9dea6a"  v-if="!isLink(msg.msg)">{{msg.msg}}</span>
                                 <img :src="msg.avatar"/>
                             </div>
                         </div>
@@ -98,11 +101,11 @@
                     <div class="tool-list">
                         <i class="el-icon-picture" title="发送图片"></i>
                     </div>
-                    <div class="input">
+                    <div class="input" @keyup.alt.83="handleSendMsg">
                         <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="msg"
-                                  class="message" resize="none">
+                                  class="message" resize="none" >
                         </el-input>
-                        <el-button class="send" type="primary" @click="handleSendMsg">发送</el-button>
+                        <el-button class="send" type="primary" @click="handleSendMsg">发送(alt + s)</el-button>
                     </div>
                 </div>
             </div>
@@ -121,7 +124,7 @@
                         </div>
                     </div>
                     <div class="action">
-                        <el-button type="success" @click="handleChat(currentFriend.id)">发送消息</el-button>
+                        <el-button type="success" @click="handleChat(currentFriend.id)" >发送消息</el-button>
                         <el-button type="danger" @click="handleDeleteFriend(currentFriend.id)">删除好友</el-button>
                     </div>
                 </div>
@@ -135,21 +138,23 @@
 
         <user-list  :visible.sync="visible.newFriend" />
         <apply-list :visible.sync="visible.applyList" :notReadApply.sync="haveNotReadApply" @handleFriendList="handleFriendList"/>
-        <edit-info :visible.sync="visible.edit" :info="info" />
-        <group :visible.sync="visible.createGroup" :friendList="friendList" />
+        <edit-info :visible.sync="visible.edit" />
+        <group :visible.sync="visible.createGroup" :friend-list="friendList" />
+        <group-user :visible.sync="visible.groupUser" :list="groupUserList" :friend-list="friendList" />
     </div>
 </template>
 <script>
   import {
     ws, deleteChat, createChat, updateChat, friendList, deleteFriend
   } from '../api/api'
-  import {getNowFormatDate} from '../utils/tool'
+  import {getNowFormatDate, validateURL} from '../utils/tool'
   import group from '../component/group'
   import editInfo from '../component/editInfo'
   import applyList from '../component/applyList'
   import userList from '../component/userList'
+  import groupUser from '../component/groupUser'
   export default {
-    components: {group, editInfo, applyList, userList},
+    components: {group, editInfo, applyList, userList, groupUser},
     data () {
       return {
         info: {}, // 个人信息
@@ -169,11 +174,14 @@
           friendList: false,
           newFriend: false,
           applyList: false,
-          createGroup: false
+          createGroup: false,
+          reConnect: true,
+          groupUser: false
         },
         friendList: [], // 好友列表
         chatList: [],  // 聊天列表
         userList: [],  // 用户列表
+        groupUserList: [],
         currentFriend: { // 当前好友
           id: '',
           username: '',
@@ -192,9 +200,12 @@
       content.scrollTop = content.scrollHeight
     },
     computed: {
-      // 聊天搜索
+      // 获取头像
+      avatar () {
+        return this.$store.state.info.avatar
+      },
+      // 聊天搜索,排序
       filterChatList () {
-        console.log(this.chatList)
         this.chatList = this.chatList.sort((a, b) => {
           if (a.online > b.online) {
             return -1
@@ -221,6 +232,14 @@
       }
     },
     methods: {
+      //
+      isLink (msg) {
+        return validateURL(msg)
+      },
+      // 消息内容格式化
+      linkMsg (msg) {
+        return `<a href="${msg}" target="_blank">${msg}</a>`
+      },
       // http删除朋友
       handleDeleteFriend (id) {
         this.$confirm('删除好友也会删除与该好友的聊天记录, 是否继续?', '提示', {
@@ -243,21 +262,27 @@
         }).catch(() => {})
       },
       // http删除聊天
-      handleDeleteChat (chatId) {
-        deleteChat(chatId).then(data => {
-          if (parseInt(data.status) === 1) {
-            const chatId = data.chatId
-            for (let [index, {chat_id}] of this.chatList.entries()) {
-              if (parseInt(chat_id) === parseInt(chatId)) {
-                const deleteChat = this.chatList.splice(index, 1)[0]
-                if (deleteChat === this.currentChat) {
-                  this.currentChat = {}
+      handleChatComment (object) {
+        if (object.type === 'delete') {
+          deleteChat(object.data).then(data => {
+            if (parseInt(data.status) === 1) {
+              const chatId = data.chatId
+              for (let [index, {chat_id}] of this.chatList.entries()) {
+                if (parseInt(chat_id) === parseInt(chatId)) {
+                  const deleteChat = this.chatList.splice(index, 1)[0]
+                  if (deleteChat === this.currentChat) {
+                    this.currentChat = {}
+                  }
+                  break
                 }
-                break
               }
             }
-          }
-        })
+          })
+        }
+        if (object.type === 'userList') {
+          this.groupUserList = object.data
+          this.visible.groupUser = true
+        }
       },
       // 朋友详情栏点击`发送消息`触发事件
       handleChat (friendId) {
@@ -265,7 +290,7 @@
         let chat
         for (let [index, {id}] of this.chatList.entries()) {
           if (parseInt(id) === parseInt(friendId)) {
-            chat = this.chatList[index] // 移动到最上层
+            chat = this.chatList[index]
             this.switchInterface('chat')  // 切换到聊天界面
             this.changeChat(chat)    // 将当前聊天对象切换成该聊天
             exist = true
@@ -352,12 +377,19 @@
           from_id: this.info.id,
           to_id: this.currentChat.target_id,
           is_read: 1,
-          avatar: this.info.avatar
+          avatar: this.avatar
         }
         this.send(msg).then(() => {
           this.currentChat.msgList.push(msg)
           this.currentChat.last_chat_time = getNowFormatDate()
           this.msg = ''
+          if (this.currentChat.notReadNum > 0) {
+            updateChat({id: this.currentChat.chat_id}).then(res => {
+              if (parseInt(res.status) === 1) {
+                this.currentChat.notReadNum = 0
+              }
+            })
+          }
         })
       },
       // 切换当前聊天对象
@@ -372,7 +404,6 @@
           })
         }
       },
-
       // 开启ws链接
       openConnect () {
         let token = localStorage.getItem('token')
@@ -383,7 +414,16 @@
         this.socket.onerror = this.onError
       },
       onError () {
-
+        this.$confirm('聊天服务器连接失败', '提示', {
+          confirmButtonText: '重新连接',
+          cancelButtonText: '取消',
+          type: 'error'
+        }).then(() => {
+          this.openConnect()
+        }).catch(() => {
+          localStorage.setItem('token', '')
+          this.$router.push('/')
+        })
       },
       // 链接成功事件
       onConnect (ws) {
@@ -394,67 +434,18 @@
       onClose () {
         this.isConnect = false
       },
-      // 下线处理函数
-      handleGoOff (data) {
-        let offlineUser
-        // 取出下线的用户
-        for (let [index, {id}] of this.friendList.entries()) {
-          if (parseInt(id) === parseInt(data.userId)) {
-            this.friendList[index].online = false
-            offlineUser = this.friendList.splice(index, 1)[0]
-            break
-          }
-        }
-        // 插入到下线用户队列的最前面
-        for (let [index, {online}] of this.friendList.entries()) {
-          if (online === false) {
-            this.friendList.splice(index, 0, offlineUser)
-            this.$message.info(`${offlineUser.username}下线了`)
-            break
-          }
-        }
-      },
-      // 上线处理函数
-      handleGoOnline (data) {
-        let onlineUser
-        // 取出上线用户
-        let flag = false
-        for (let [index, {id}] of this.chatList.entries()) {
-          if (parseInt(id) === parseInt(data.user.id)) {
-            this.chatList[index].online = true
-            onlineUser = this.chatList.splice(index, 1)[0]
-            flag = true
-            break
-          }
-        }
-        // 插入到上线用户队列的最后面
-        for (let [index, {online}] of this.friendList.entries()) {
-          if (online === false) {
-            if (flag) {
-              this.friendList.splice(index, 0, onlineUser)
-              this.$message.info(`${onlineUser.username}上线了`)
-            } else {
-              this.friendList.splice(index, 0, data)
-            }
-            break
-          }
-        }
-      },
       // 聊天消息接受处理函数
       handleMsg (data) {
         if ('chat' in data) {
           const chat = data.chat
           chat.notReadNum += 1
           chat.msgList.push(data.msg)
-          this.chatList.push(chat)
+          this.chatList.unshift(chat)
         } else {
-          for (let [index, {chat_id}] of this.chatList.entries()) {
-            if (parseInt(chat_id) === parseInt(data.msg.chat_id)) {
-              this.chatList[index].msgList.push(data.msg)
-              this.chatList[index].notReadNum += 1
-              break
-            }
-          }
+          let chat = this.chatList.find(element => parseInt(element.chat_id) === parseInt(data.msg.chat_id))
+          chat.msgList.push(data.msg)
+          chat.last_chat_time = data.msg.time
+          chat.notReadNum += 1
         }
       },
       // 接受消息事件
@@ -471,11 +462,12 @@
             this.handleLoginOut()
             break
           case 'repeat':  // 被踢
+            this.visible.reConnect = false
             this.socket.close()
+            localStorage.setItem('token', '')
             this.$alert('你的账号已在别处登陆', '提示', {
               confirmButtonText: '确定',
               callback: () => {
-                localStorage.setItem('token', '')
                 this.$router.push('/')
               }
             })
@@ -493,17 +485,34 @@
           case 'repeatConnect': // 重复连接
             this.socket.close()
             this.visible.repeatConnect = true
+            this.visible.reConnect = false
+            break
+          case 'goOnline':  // 上线消息
+            let chat = this.chatList.find(element => parseInt(element.chat_id) === parseInt(data.chatId))
+            chat.online = true
+            break
+          case 'goOffLine':  // 下线消息
+            chat = this.chatList.find(element => parseInt(element.chat_id) === parseInt(data.chatId))
+            chat.online = false
+            break
+          case 'quitGroup':   // 退出群组消息
+            let chatId = data.chatId
+            let userId = data.userId
+            chat = this.chatList.find((element) => parseInt(element.chat_id) === parseInt(chatId))
+            let index = chat.userList.findIndex(element => parseInt(element.id) === parseInt(userId))
+            chat.userList.splice(index, 1)
+            break
         }
       }
     },
     mounted () {
       this.openConnect()
-      this.info = JSON.parse(localStorage.getItem('user'))
+      this.info = this.$store.state.info
       this.handleFriendList()
     },
     watch: {
       isConnect: function (newResult, oldResult) {
-        if (newResult === false && this.$route.path === '/chat' && this.visible.repeatConnect === false) {
+        if (newResult === false && this.$route.path === '/chat' && this.visible.reConnect === true) {
           this.$confirm('聊天服务器已断开', '提示', {
             confirmButtonText: '重新连接',
             cancelButtonText: '取消',
@@ -768,7 +777,7 @@
                 .send
                     float: right
                     margin-top: 10px
-                    width: 100px
+                    /*width: 100px*/
                 .message
                     overflow: auto
 

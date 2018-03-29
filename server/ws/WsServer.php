@@ -77,6 +77,7 @@ class WsServer implements ServerInterface
                             $redis->subscribe("agreeCH");
                             $redis->subscribe("closeFD");
                             $redis->subscribe("createGroup");
+                            $redis->subscribe("quitGroup");
                         }
                     });
                 }

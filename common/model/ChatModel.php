@@ -3,6 +3,8 @@
 namespace common\model;
 
 use common\lib\DB;
+use common\lib\MyRedis;
+use core\App;
 use Medoo\Medoo;
 
 /**
@@ -120,7 +122,7 @@ class ChatModel extends DB
         }
         $chat = $chat[0];
         if($chat['type'] ==self::TYPE_GROUP){
-            return $this->medoo->action(function (Medoo $db) use ($chat) {
+            $result =  $this->medoo->action(function (Medoo $db) use ($chat) {
                 if ($db->delete(self::$tableName, ['chat_id'=>$chat['chat_id']])  && $db->delete(GroupUserModel::$tableName, ['group_id' => $chat['target_id'], 'user_id' => $chat['user_id']])) {
                     $db->delete(MessageModel::$tableName, ['chat_id' => $chat['chat_id']]);
                     $groupUser = $db->select(GroupUserModel::$tableName,"*",['group_id'=>$chat['target_id']]);
@@ -131,6 +133,11 @@ class ChatModel extends DB
                 }
                 return false;
             });
+            if( $result) {
+                $redis = App::createObject(MyRedis::class);
+                $redis->publish("quitGroup",json_encode($chat));
+            }
+            return $result;
         }else{
             $row = $this->medoo->delete(self::$tableName,$where);
             if ($row) {

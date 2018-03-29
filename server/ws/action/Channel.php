@@ -2,8 +2,15 @@
 namespace server\ws\action;
 use common\model\ChatModel;
 use common\model\FriendApplyModel;
+use common\model\GroupUserModel;
 use common\model\UserModel;
 use common\model\GroupModel;
+
+/**
+ * Class Channel
+ * @package server\ws\action
+ * redis 订阅处理类
+ */
 class Channel extends Action{
     
     public function handle()
@@ -14,17 +21,23 @@ class Channel extends Action{
         }
     }
 
+    /**
+     * @param $data
+     */
     private function applyCH($data){
         $applyId = $data;
         $applyModel = new FriendApplyModel($this->server->db);
         $apply = $applyModel->selectOne(['id' => $applyId]);
-        //如果申请目标在线,推送全新的好友申请列表
+        //如果申请目标在线,推送有新还有申请标识
         if ($this->server->redis->sIsMember("onlineList", $apply['target_id'])) {
             $targetFd = $this->server->redis->hGet('userId:userFd', $apply['target_id']);
             $this->pushNewApply($targetFd);
         }
     }
-    
+
+    /**
+     * @param $data
+     */
     private function agreeCH($data){
         $applyId = $data;
         $applyModel = new FriendApplyModel($this->server->db);
@@ -37,6 +50,9 @@ class Channel extends Action{
         }
     }
 
+    /**
+     * @param $data
+     */
     private function closeFD($data){
         $closeFd = $data;
         if ($this->server->exist($closeFd)) {
@@ -47,6 +63,10 @@ class Channel extends Action{
         }
     }
 
+    /**
+     * @param $data
+     * 创建群组
+     */
     private function createGroup($data){
         $groupId = $data;
         $groupModel = new GroupModel($this->server->db);
@@ -70,6 +90,20 @@ class Channel extends Action{
                 $group['online'] = true;
                 $group['userList'] = (new UserModel($this->server->db))->findByGroup($group['group_id']);
                 $this->pushNewGroup($fd,['group'=>$group]);
+            }
+        }
+    }
+
+    private function quitGroup($data){
+        $chat = json_decode($data,true);
+        $groupUserList = (new GroupUserModel($this->server->db))->selectAll(['group_id'=>$chat['target_id']]);
+        $redis = $this->server->redis;
+        $chatModel = new ChatModel($this->server->db);
+        foreach ($groupUserList as $k => $user){
+            if($redis->sIsMember('onlineList',$user['user_id'])){
+                $userChat = $chatModel->selectOne(['target_id'=>$chat['target_id'],"user_id"=>$user['user_id']]);
+                $fd  = $redis->hGet("userId:userFd",$user['user_id']);
+                $this->push($fd,['userId'=>$chat['user_id'],'chatId'=>$userChat['chat_id']],"quitGroup");
             }
         }
     }

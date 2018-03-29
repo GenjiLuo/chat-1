@@ -6,25 +6,32 @@
                    :show-file-list="false"
                    :on-success="handleAvatarSuccess"
                    :before-upload="beforeAvatarUpload">
-            <img v-if="info.avatar" :src="info.avatar" class="avatar">
+            <img v-if="avatar" :src="avatar" class="avatar">
             <i class="el-icon-plus avatar-uploader-icon" v-else></i>
         </el-upload>
-        <span slot="footer" class="dialog-footer">
-               <el-button type="primary" @click="handleClose">确定</el-button>
+        <span slot="footer"  style="text-align: center">
+               <el-button type="primary" @click="handleClose">关闭</el-button>
         </span>
     </el-dialog>
 </template>
 
 <script>
   import {avatarUrl} from '../api/api'
-
   export default {
     name: 'edit-info',
-    props: ['visible', 'info'],
+    props: ['visible'],
+    data () {
+      return {
+        info: {}
+      }
+    },
     computed: {
       action () {
         let token = localStorage.getItem('token')
         return avatarUrl + '?token=' + token
+      },
+      avatar () {
+        return this.$store.state.info.avatar
       }
     },
     methods: {
@@ -32,8 +39,8 @@
         this.$emit('update:visible', false)
       },
       // 头像上传成功事件
-      handleAvatarSuccess (res, file) {
-        this.info.avatar = res.url
+      handleAvatarSuccess (res) {
+        this.$store.commit('setAvatar', res.url)
       },
       // 头像上传验证
       beforeAvatarUpload (file) {

@@ -90,7 +90,7 @@ class Open extends Action
             // array_multisort($sortArrTwo, SORT_DESC, $sortArrOne, SORT_DESC, $chatList);
             $this->pushChatList($fd, ["chatList" => $chatList]);
             // 调用task进程广播用户上线信息
-            $this->pushTask(['fd' => $fd, 'user' => $user], Task::TASK_ONLINE);
+            $this->pushTask(['userId' => $user['id']], Task::TASK_ONLINE);
         } else {
             $this->push($fd, [], "forbidden");
         }

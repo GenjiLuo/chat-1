@@ -13,6 +13,7 @@ const notLoginJump = (to, form, next) => {
     loginByToken({token: token}).then(res => {
       if (parseInt(res.status) === 1) {
         Store.state.token = res.token
+        Store.state.info = res.user
         localStorage.setItem('user', JSON.stringify(res.user))
         next()
       } else {
