@@ -5,7 +5,9 @@
                    :action="action"
                    :show-file-list="false"
                    :on-success="handleAvatarSuccess"
-                   :before-upload="beforeAvatarUpload">
+                   :before-upload="beforeAvatarUpload"
+                   :headers="headers"
+        >
             <img v-if="avatar" :src="avatar" class="avatar">
             <i class="el-icon-plus avatar-uploader-icon" v-else></i>
         </el-upload>
@@ -27,11 +29,14 @@
     },
     computed: {
       action () {
-        let token = localStorage.getItem('token')
-        return avatarUrl + '?token=' + token
+        return avatarUrl
       },
       avatar () {
         return this.$store.state.info.avatar
+      },
+      headers () {
+        let token = 'Bearer ' + this.$store.state.token
+        return {Authorization: token}
       }
     },
     methods: {

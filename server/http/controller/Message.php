@@ -9,8 +9,9 @@ use Medoo\Medoo;
 
 class Message extends Controller
 {
-
-
+    /**
+     * @return array|mixed
+     */
     public function view()
     {
         $page = isset($this->request->get['page']) ? $this->request->get['page'] : 1;
@@ -41,7 +42,6 @@ class Message extends Controller
                     "ORDER" => ['time' => "DESC"]
                 ];
             }
-            var_dump($db->log());
             $msgList = (new MessageModel($db))->findWithAvatar($where);
             return ['status' => 1, 'msgList' => array_reverse($msgList)];
         }

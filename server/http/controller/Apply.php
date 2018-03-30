@@ -8,7 +8,9 @@ use core\App;
 
 class Apply extends Auth
 {
-
+    /**
+     * @return array|mixed
+     */
     public function view(){
         $userId = $this->user['id'];
         $applyModel = App::createObject(FriendApplyModel::class);

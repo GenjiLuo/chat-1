@@ -8,6 +8,9 @@ use core\App;
 
 class Token extends Controller
 {
+    /**
+     * @return array|mixed
+     */
     public function update()
     {
         $redis = App::createObject(MyRedis::class);

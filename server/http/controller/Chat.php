@@ -45,7 +45,6 @@ class Chat extends Auth
                 }else{
                     $newChat['online'] = false ;
                 }
-                $redis->close();
                 return ['status' => 1, 'chat' => $newChat];
             }
         }

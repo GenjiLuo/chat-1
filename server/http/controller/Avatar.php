@@ -11,6 +11,9 @@ use core\App;
  */
 class Avatar extends Auth
 {
+    /**
+     * @return array|mixed
+     */
     public function create()
     {
         $file = $this->request->files['file'];
@@ -21,7 +24,7 @@ class Avatar extends Auth
         $fileName = md5($file['name'].time())."jpg";
         $newFile = $avatarPath.$fileName;
         copy($file['tmp_name'],$newFile);
-        $userId = (App::createObject(MyRedis::class))->get($this->request->get["token"]);
+        $userId = $this->user['id'];
         $userModel = App::createObject(UserModel::class);
         $userModel->update(['avatar'=>$fileName],["id"=>$userId]);
         return [

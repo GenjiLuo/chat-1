@@ -5,6 +5,7 @@ demo  **[点击我](http://119.29.63.161)**
 ## 功能
 - [x] 注册，登陆，登陆状态维持
 - [x] 重复登陆处理，重复连接处理（同一浏览器打开多个）
+- [x] 头像修改
 - [x] 好友聊天，添加，删除好友
 - [x] 群组聊天，创建，退出群组
 - [x] 聊天记录保存，可上拉加载查看，删除本方聊天记录（不影响对方）
@@ -19,7 +20,7 @@ demo  **[点击我](http://119.29.63.161)**
 - 依赖注入，控制反转
 - redis,mysql长连接
 - redis 发布订阅
-- Vue.js + vuex + webpack + vue-router + es6
+- Vue.js + vuex + webpack + vue-router + es6 + element-ui
 ## Requirement
 1. PHP >= 7.0
 2. **[Composer](https://getcomposer.org/)**

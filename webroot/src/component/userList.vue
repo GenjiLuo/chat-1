@@ -2,7 +2,7 @@
     <el-dialog :visible.sync="visible" width="300px" :show-close="false" custom-class="new-friend"
                :close-on-click-modal="false" :close-on-press-escape="false">
             <span slot="title">
-               <el-input placeholder="请输入内容" v-model.trim="search" class="input-with-select" size="small">
+               <el-input placeholder="用户名" v-model.trim="search" class="input-with-select" size="small">
                     <el-button slot="append" icon="el-icon-search" size="mini" @click="handleUserList"/>
                </el-input>
             </span>
