@@ -13,6 +13,8 @@ class MessageModel extends DB
 
     public static $tableName = "message";
 
+    const PAGE_SIZE = 20 ;
+
     /**
      * @param $message
      * @return bool

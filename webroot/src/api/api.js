@@ -68,4 +68,7 @@ export const applyList = params => {
 export const createGroup = params => {
   return axios.post(`${base}/group`, qs.stringify(params)).then(res => res.data)
 }
+export const messageList = params => {
+  return axios.get(`${base}/message`, {params: params}).then(res => res.data)
+}
 export const avatarUrl = `${base}/avatar`

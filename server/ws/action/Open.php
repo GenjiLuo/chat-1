@@ -15,8 +15,9 @@ class Open extends Action
         $user = (new UserModel($this->server->db))->findOne(['access_token' => $token]);
         $fd = $this->request->fd;
         if ($user) {
+            $currentTime = date('Y-m-d H:i:s');
             $userId = $user['id'];
-            // 如果已经登陆且连接ws
+            // 如果已经登陆且连接ws,即同一浏览器打开多个界面
             if($redis->sIsMember("onlineList",$userId)){
                 $oldFd = $redis->hGet("userId:userFd",$userId);
                 $this->pushRepectConnect($oldFd);
@@ -33,6 +34,7 @@ class Open extends Action
             // 用户聊天对象
             $userChatList = $chatModel->findAllWithUser($userId);
             // 判断是否在线
+
             foreach ($userChatList as $key => $val) {
                 if ($redis->sIsMember('onlineList', $val['id'])) {
                     $userChatList[$key]['online'] = true;
@@ -45,7 +47,7 @@ class Open extends Action
                             "AND #2" => ["from_id" => $userId, "to_id" => $val["target_id"]],
                         ],
                         'chat_id' => $val['chat_id'],
-                        "LIMIT" => 20,
+                        "LIMIT" => MessageModel::PAGE_SIZE,
                         "ORDER" => ['time' => "DESC"]
                     ]
                 );
@@ -57,6 +59,8 @@ class Open extends Action
                     }
                 }
                 $userChatList[$key]['msgList'] = array_reverse($msgList);
+                $userChatList[$key]['getMsgTime'] = $currentTime;
+                $userChatList[$key]['page'] = 1;
             }
             // 群组聊天对象
             $groupChatList = $chatModel->findOneWithGroup(['user_id' => $userId]);
@@ -79,6 +83,8 @@ class Open extends Action
                 $userModel = new UserModel($this->server->db);
                 $groupChatList[$key]['userList'] = $userModel->findByGroup($val['group_id']);
                 $groupChatList[$key]['msgList'] = array_reverse($msgList);
+                $groupChatList[$key]['getMsgTime'] = $currentTime;
+                $groupChatList[$key]['page'] = 1;
             }
             $chatList = array_merge($groupChatList, $userChatList);
             // 排序,先按照上下线排序，再按最后聊天排序

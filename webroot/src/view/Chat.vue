@@ -84,7 +84,9 @@
                     </p>
                 </div>
                 <div class="chat-tool">
-                    <div class="content" id="content">
+                    <div class="content" id="content" @scroll="handleScroll">
+                        <p class="load-msg-notice" v-show="visible.loadingMessage">-----------加载聊天记录中-----------</p>
+                        <p class="load-msg-notice"  v-show="currentChat.noMsg">-----------暂无更多消息-----------</p>
                         <div v-for="msg in currentChat.msgList ">
                             <div v-if="msg.from_id !== info.id" class="others">
                                 <img :src="msg.avatar">
@@ -145,7 +147,7 @@
 </template>
 <script>
   import {
-    ws, deleteChat, createChat, updateChat, friendList, deleteFriend
+    ws, deleteChat, createChat, updateChat, friendList, deleteFriend, messageList
   } from '../api/api'
   import {getNowFormatDate, validateURL} from '../utils/tool'
   import group from '../component/group'
@@ -176,7 +178,8 @@
           applyList: false,
           createGroup: false,
           reConnect: true,
-          groupUser: false
+          groupUser: false,
+          loadingMessage: false
         },
         friendList: [], // 好友列表
         chatList: [],  // 聊天列表
@@ -191,13 +194,20 @@
         },
         socket: '',
         isConnect: false,
-        haveNotReadApply: false
+        haveNotReadApply: false,
+        getMsgFlag: true
       }
     },
     updated () {
-      // 消息框移到最底部
+      // 消息框滚动条处理
+      let toBottom
+      if (!this.currentChat.scrollBottom) {
+        toBottom = 0
+      } else {
+        toBottom = this.currentChat.scrollBottom
+      }
       let content = document.getElementById('content')
-      content.scrollTop = content.scrollHeight
+      content.scrollTop = content.scrollHeight - toBottom
     },
     computed: {
       // 获取头像
@@ -232,11 +242,44 @@
       }
     },
     methods: {
-      //
+      // scroll触发函数，记录每个聊天框滚动条的滚动位置
+      handleScroll () {
+        let doc = document.getElementById('content')
+        this.currentChat.scrollBottom = doc.scrollHeight - doc.scrollTop
+        if (doc.scrollTop < 10) {
+          this.handleMessageList(this.currentChat)
+        }
+      },
+      //  获取聊天记录
+      handleMessageList (chat) {
+        if (chat.noMsg !== true && this.getMsgFlag === true) {
+          this.visible.loadingMessage = true
+          this.getMsgFlag = false
+          chat.page += 1
+          let params = {
+            page: chat.page,
+            id: chat.chat_id,
+            time: chat.getMsgTime
+          }
+          messageList(params).then(res => {
+            this.visible.loadingMessage = false
+            if (parseInt(res.status) === 1) {
+              if (res.msgList.length === 0) {
+                this.$set(chat, 'noMsg', true)
+              } else {
+                chat.msgList = res.msgList.concat(chat.msgList)
+              }
+            }
+            this.getMsgFlag = true
+          })
+        }
+      },
+
+      // 判断消息是否为url
       isLink (msg) {
         return validateURL(msg)
       },
-      // 消息内容格式化
+      // 消息内容url化
       linkMsg (msg) {
         return `<a href="${msg}" target="_blank">${msg}</a>`
       },
@@ -267,14 +310,10 @@
           deleteChat(object.data).then(data => {
             if (parseInt(data.status) === 1) {
               const chatId = data.chatId
-              for (let [index, {chat_id}] of this.chatList.entries()) {
-                if (parseInt(chat_id) === parseInt(chatId)) {
-                  const deleteChat = this.chatList.splice(index, 1)[0]
-                  if (deleteChat === this.currentChat) {
-                    this.currentChat = {}
-                  }
-                  break
-                }
+              let index = this.chatList.findIndex(element => parseInt(element.chat_id) === parseInt(chatId))
+              const deleteChat = this.chatList.splice(index, 1)[0]
+              if (deleteChat === this.currentChat) {
+                this.currentChat = {}
               }
             }
           })
@@ -287,15 +326,11 @@
       // 朋友详情栏点击`发送消息`触发事件
       handleChat (friendId) {
         let exist = false
-        let chat
-        for (let [index, {id}] of this.chatList.entries()) {
-          if (parseInt(id) === parseInt(friendId)) {
-            chat = this.chatList[index]
-            this.switchInterface('chat')  // 切换到聊天界面
-            this.changeChat(chat)    // 将当前聊天对象切换成该聊天
-            exist = true
-            break
-          }
+        let chat = this.chatList.find(e => parseInt(e.id) === parseInt(friendId))
+        if (chat) {
+          this.switchInterface('chat')  // 切换到聊天界面
+          this.changeChat(chat)    // 将当前聊天对象切换成该聊天
+          exist = true
         }
         // 如果聊天不存在,则创建聊天请求
         if (!exist) {
@@ -500,7 +535,8 @@
             let userId = data.userId
             chat = this.chatList.find((element) => parseInt(element.chat_id) === parseInt(chatId))
             let index = chat.userList.findIndex(element => parseInt(element.id) === parseInt(userId))
-            chat.userList.splice(index, 1)
+            let user = chat.userList.splice(index, 1)
+            this.$message.success(`<${user.username}>退出了群组<${chat.group_name}>`)
             break
         }
       }
@@ -749,6 +785,11 @@
                 overflow: auto
                 height: 340px
                 text-align: left
+                .load-msg-notice
+                    text-align: center
+                    color: #909399
+                    margin: 10px 50px
+                    font-size: 16px
                 div
                     margin: 10px 10px
                     min-height: 50px
