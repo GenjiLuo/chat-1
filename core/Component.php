@@ -84,7 +84,19 @@ class Component
      */
     public function __set(string $name, $def)
     {
-        $this->_container[$name] = $def;
+        if (isset($this->_container[$name])) {
+            unset($this->_container[$name]);
+        }
+        if (is_array($def)) {
+            $className = $def['class'];
+            unset($def['class']);
+            $this->_definition[$name] = $className;
+            IOC::set($className, $def);
+        }
+        if (is_string($def)) {
+            $className = $def;
+            $this->_definition[$name] = $className;
+        }
     }
 
 }

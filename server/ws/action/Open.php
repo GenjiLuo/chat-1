@@ -33,9 +33,9 @@ class Open extends Action
             $chatModel = new ChatModel($this->server->db);
             // 用户聊天对象
             $userChatList = $chatModel->findAllWithUser($userId);
-            // 判断是否在线
 
             foreach ($userChatList as $key => $val) {
+                // 判断是否在线
                 if ($redis->sIsMember('onlineList', $val['id'])) {
                     $userChatList[$key]['online'] = true;
                 } else {
@@ -87,12 +87,11 @@ class Open extends Action
                 $groupChatList[$key]['page'] = 1;
             }
             $chatList = array_merge($groupChatList, $userChatList);
-            // 排序,先按照上下线排序，再按最后聊天排序
-            foreach ($chatList as $key => $val) {
-                $sortArrOne[$key] = $val['last_chat_time'];
-                $sortArrTwo[$key] = $val['online'];
-            }
-            // 客户端排序
+            // 排序,先按照上下线排序，再按最后聊天排序,已采用客户端排序，此处已无作用
+//            foreach ($chatList as $key => $val) {
+//                $sortArrOne[$key] = $val['last_chat_time'];
+//                $sortArrTwo[$key] = $val['online'];
+//            }
             // array_multisort($sortArrTwo, SORT_DESC, $sortArrOne, SORT_DESC, $chatList);
             $this->pushChatList($fd, ["chatList" => $chatList]);
             // 调用task进程广播用户上线信息

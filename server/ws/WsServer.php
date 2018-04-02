@@ -2,9 +2,6 @@
 
 namespace server\ws;
 
-use common\model\FriendApplyModel;
-use common\model\GroupModel;
-use common\model\UserModel;
 use core\interfaces\ServerInterface;
 use common\lib\MyRedis;
 use Medoo\Medoo;

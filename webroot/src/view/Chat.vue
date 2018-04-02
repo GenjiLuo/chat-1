@@ -1,7 +1,7 @@
 <template>
     <div class="main" >
         <div>
-            <div>
+            <div class="left-content">
                 <div class="friend-box">
                     <div class="info">
                         <el-dropdown @command="handleCommand">
@@ -75,7 +75,7 @@
                     </div>
                 </div>
             </div>
-            <div class="msg-box" v-show="visible.chatList">
+            <div class="msg-box right-content" v-show="visible.chatList">
                 <div class="head">
                     <p v-if="parseInt(currentChat.type) === 0">{{currentChat.username}}</p>
                     <p v-if="parseInt(currentChat.type) === 1" title="">{{currentChat.group_name}}
@@ -101,7 +101,7 @@
                         </div>
                     </div>
                     <div class="tool-list">
-                        <i class="el-icon-picture" title="发送图片"></i>
+                        <i class="el-icon-picture" title="发送图片" @click="handleUploadFile"></i>
                     </div>
                     <div class="input" @keyup.alt.83="handleSendMsg">
                         <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="msg"
@@ -111,7 +111,7 @@
                     </div>
                 </div>
             </div>
-            <div class="friend-info" v-show="visible.friendList">
+            <div class="friend-info right-content" v-show="visible.friendList">
                 <div v-show="friendList.length > 0">
                     <div class="title">
                         <div>
@@ -131,15 +131,17 @@
                     </div>
                 </div>
             </div>
+            <div class="file-upload">
+                <file-upload ref="uploadFile" :file-list="fileList" />
+            </div>
         </div>
-
         <el-dialog title="错误" :visible.sync="visible.repeatConnect" width="400px" center
                    :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
             <span><i class="el-icon-error"></i>只允许打开一个聊天窗口</span>
         </el-dialog>
 
         <user-list  :visible.sync="visible.newFriend" />
-        <apply-list :visible.sync="visible.applyList" :notReadApply.sync="haveNotReadApply" @handleFriendList="handleFriendList"/>
+        <apply-list :visible.sync="visible.applyList" :not-read-apply.sync="haveNotReadApply" @handleFriendList="handleFriendList"/>
         <edit-info :visible.sync="visible.edit" />
         <group :visible.sync="visible.createGroup" :friend-list="friendList" />
         <group-user :visible.sync="visible.groupUser" :list="groupUserList" :friend-list="friendList" />
@@ -155,8 +157,9 @@
   import applyList from '../component/applyList'
   import userList from '../component/userList'
   import groupUser from '../component/groupUser'
+  import fileUpload from '../component/fileUpload'
   export default {
-    components: {group, editInfo, applyList, userList, groupUser},
+    components: {group, editInfo, applyList, userList, groupUser, fileUpload},
     data () {
       return {
         info: {}, // 个人信息
@@ -195,7 +198,8 @@
         socket: '',
         isConnect: false,
         haveNotReadApply: false,
-        getMsgFlag: true
+        getMsgFlag: true,
+        fileList: []
       }
     },
     updated () {
@@ -210,6 +214,7 @@
       content.scrollTop = content.scrollHeight - toBottom
     },
     computed: {
+
       // 获取头像
       avatar () {
         return this.$store.state.info.avatar
@@ -242,6 +247,9 @@
       }
     },
     methods: {
+      handleUploadFile () {
+        this.$refs.uploadFile.upload()
+      },
       // scroll触发函数，记录每个聊天框滚动条的滚动位置
       handleScroll () {
         let doc = document.getElementById('content')
@@ -575,14 +583,23 @@
         & > div
             margin: 0 auto
             display: inline-block
-            & > div:first-child
+            .left-content
                 width: 260px
                 display: inline-block
                 float: left
-            & > div:nth-child(n+2)
+            .right-content
                 width: 600px
                 display: inline-block
                 vertical-align: top
+            .file-upload
+                vertical-align: top
+                width: 200px
+                display: inline-block
+                float: right
+                border-top: 1px solid #D8DCE5
+                border-right: 1px solid #D8DCE5
+                border-bottom: 1px solid #D8DCE5
+                height: 600px
     .friend-box
         border-left: 1px solid #D8DCE5
         border-top: 1px solid #D8DCE5
