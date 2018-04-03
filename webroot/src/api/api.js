@@ -5,11 +5,9 @@ const base = 'http://127.0.0.1:8081'
 export const ws = 'ws://127.0.0.1:9501'
 // const base = 'http://192.168.2.238:8081'
 // export const ws = 'ws://192.168.2.238:9501'
+axios.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded'
 axios.interceptors.request.use(
   config => {
-    config.headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }
     if (store.state.token !== '') {
       config.headers.Authorization = 'Bearer ' + store.state.token
     }
@@ -70,5 +68,8 @@ export const createGroup = params => {
 }
 export const messageList = params => {
   return axios.get(`${base}/message`, {params: params}).then(res => res.data)
+}
+export const uploadFile = (params,config) => {
+  return axios.post(`${base}/file`, qs.stringify(params),config).then(res => res.data)
 }
 export const avatarUrl = `${base}/avatar`

@@ -8,29 +8,31 @@
 </template>
 
 <script>
+  import {uploadFile} from '../api/api'
   export default {
     name: 'file-upload',
     props: ['fileList'],
     data () {
       return {
-        sliceSize: 256
+        sliceSize: 1024 * 1024
       }
     },
     methods: {
-      handlePostdata (start, file, size, fileRead = null) {
-        if (fileRead === null){
-          fileRead = new FileReader()
-          fileRead.onloadend = e => {
-            if (e.target.readyState === FileReader.DONE) { // DONE == 2
-              if (stop < file.size) {
-                this.handlePostdata(stop, file, size, fileRead)
-              }
+      handlePostdata (start, file, size) {
+        let stop = start + size
+        let chunk = file.slice(start, stop)
+        let form = new FormData()
+        form.append('data', chunk)
+        form.append('name', file.name)
+        let config = {
+            headers:{
+              'Content-Type':'multipart/form-data'
             }
-          }
-          let stop = start + size
-          let splice = file.slice(start, stop)
-          let data = fileRead.readAsBinaryString(splice)
         }
+        uploadFile(form, config).then(res => {
+          console.log(res)
+        })
+
       },
       handleFileSelect (e) {
         let file = e.target.files[0]

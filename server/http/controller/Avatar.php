@@ -21,7 +21,7 @@ class Avatar extends Auth
             return ['status' => 0];
         }
         $avatarPath = BASE_ROOT."/".STATIC_DIR."/avatar/";
-        $fileName = md5($file['name'].time())."jpg";
+        $fileName = md5($file['name'].time()).".jpg";
         $newFile = $avatarPath.$fileName;
         copy($file['tmp_name'],$newFile);
         $userId = $this->user['id'];
