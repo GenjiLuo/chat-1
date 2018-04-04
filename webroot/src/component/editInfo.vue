@@ -6,7 +6,7 @@
                    :show-file-list="false"
                    :on-success="handleAvatarSuccess"
                    :before-upload="beforeAvatarUpload"
-                   :headers="headers"
+                   :headers="$store.getters.headers"
         >
             <img v-if="avatar" :src="avatar" class="avatar">
             <i class="el-icon-plus avatar-uploader-icon" v-else></i>
@@ -33,10 +33,6 @@
       },
       avatar () {
         return this.$store.state.info.avatar
-      },
-      headers () {
-        let token = 'Bearer ' + this.$store.state.token
-        return {Authorization: token}
       }
     },
     methods: {

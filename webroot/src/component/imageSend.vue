@@ -10,7 +10,7 @@
 <script>
   import {uploadFile} from '../api/api'
   export default {
-    name: 'file-upload',
+    name: 'image-send',
     props: ['fileList'],
     data () {
       return {

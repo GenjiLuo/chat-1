@@ -20,6 +20,11 @@ const store = new Vuex.Store({
   getters: {
     getInfo () {
       return this.info
+    },
+    headers () {
+      return {
+        Authorization: 'Bearer ' + store.state.token
+      }
     }
   },
   actions: {

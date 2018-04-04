@@ -69,7 +69,5 @@ export const createGroup = params => {
 export const messageList = params => {
   return axios.get(`${base}/message`, {params: params}).then(res => res.data)
 }
-export const uploadFile = (params,config) => {
-  return axios.post(`${base}/file`, qs.stringify(params),config).then(res => res.data)
-}
 export const avatarUrl = `${base}/avatar`
+export const imageUrl = `${base}/image`

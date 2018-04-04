@@ -52,7 +52,8 @@ class Message extends Action
                     'chat_id' => $chatInfo['chat_id'],
                     'time' => $date,
                     'msg' => $data['msg'],
-                    'is_read'=>1
+                    'is_read'=>1,
+                    'msg_type'=> isset($data['msg_type']) ? $data['msg_type']:0
                 ];
                 $messageModel->insert($msg);
                 $chatModel->update(['last_chat_time'=>$date],['chat_id' => $chatId]);
@@ -72,7 +73,8 @@ class Message extends Action
                     'chat_id' => $targetChatId,
                     'time' => $date,
                     'msg' => $data['msg'],
-                    'is_read'=>0
+                    'is_read'=>0,
+                    'msg_type'=> isset($data['msg_type']) ? $data['msg_type']:0
                 ];
                 $messageModel->insert($reverseMsg);
                 if ($redis->sIsMember("onlineList", $chatInfo['target_id'])) { //目标用户在线
@@ -103,7 +105,8 @@ class Message extends Action
                         'chat_id' => $groupUserChat['chat_id'],
                         'time' => $date,
                         'msg' => $data['msg'],
-                        'is_read'=> $userId == $val['user_id'] ? 1: 0
+                        'is_read'=> $userId == $val['user_id'] ? 1: 0,
+                        'msg_type'=> isset($data['msg_type']) ? $data['msg_type']:0
                     ];
                     $messageModel->insert($reverseMsg);
                     if ($val['user_id'] != $userId && $redis->sIsMember("onlineList", $val['user_id'])) { //目标用户在线

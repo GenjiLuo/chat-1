@@ -89,19 +89,25 @@
                         <p class="load-msg-notice"  v-show="currentChat.noMsg">-----------暂无更多消息-----------</p>
                         <div v-for="msg in currentChat.msgList ">
                             <div v-if="msg.from_id !== info.id" class="others">
-                                <img :src="msg.avatar">
-                                <span v-html="linkMsg(msg.msg)" v-if="isLink(msg.msg)"></span>
-                                <span  v-if="!isLink(msg.msg)">{{msg.msg}}</span>
+                                <img :src="msg.avatar" class="avatar">
+                                <span v-html="linkMsg(msg.msg)" v-if="isLink(msg.msg) && parseInt(msg.msg_type) === 0"></span>
+                                <span  v-if="!isLink(msg.msg) && parseInt(msg.msg_type) === 0">{{msg.msg}}</span>
+                                <img :src="msg.msg" v-if="parseInt(msg.msg_type) === 1" class="chat-image"/>
                             </div>
                             <div style="text-align: right" v-if="msg.from_id === info.id">
-                                <span style="background-color: #9dea6a" v-html="linkMsg(msg.msg)" v-if="isLink(msg.msg)"></span>
-                                <span style="background-color: #9dea6a"  v-if="!isLink(msg.msg)">{{msg.msg}}</span>
-                                <img :src="msg.avatar"/>
+                                <img :src="msg.msg" v-if="parseInt(msg.msg_type) === 1" class="chat-image"/>
+                                <span style="background-color: #9dea6a" v-html="linkMsg(msg.msg)" v-if="isLink(msg.msg) && parseInt(msg.msg_type) === 0"></span>
+                                <span style="background-color: #9dea6a"  v-if="!isLink(msg.msg) && parseInt(msg.msg_type) === 0">{{msg.msg}}</span>
+                                <img :src="msg.avatar" class="avatar"/>
                             </div>
                         </div>
                     </div>
                     <div class="tool-list">
-                        <i class="el-icon-picture" title="发送图片" @click="handleUploadFile"></i>
+                        <el-upload class="avatar-uploader" :action="imageUrl" :show-file-list="false"
+                                   :headers="$store.getters.headers" :before-upload="handleBeforeUpload"
+                                   :on-success="handleImageSuccess" >
+                            <i class="el-icon-picture" title="发送图片" ></i>
+                        </el-upload>
                     </div>
                     <div class="input" @keyup.alt.83="handleSendMsg">
                         <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="msg"
@@ -131,9 +137,6 @@
                     </div>
                 </div>
             </div>
-            <div class="file-upload">
-                <file-upload ref="uploadFile" :file-list="fileList" />
-            </div>
         </div>
         <el-dialog title="错误" :visible.sync="visible.repeatConnect" width="400px" center
                    :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
@@ -149,7 +152,7 @@
 </template>
 <script>
   import {
-    ws, deleteChat, createChat, updateChat, friendList, deleteFriend, messageList
+    ws, deleteChat, createChat, updateChat, friendList, deleteFriend, messageList, imageUrl
   } from '../api/api'
   import {getNowFormatDate, validateURL} from '../utils/tool'
   import group from '../component/group'
@@ -157,9 +160,8 @@
   import applyList from '../component/applyList'
   import userList from '../component/userList'
   import groupUser from '../component/groupUser'
-  import fileUpload from '../component/fileUpload'
   export default {
-    components: {group, editInfo, applyList, userList, groupUser, fileUpload},
+    components: {group, editInfo, applyList, userList, groupUser},
     data () {
       return {
         info: {}, // 个人信息
@@ -214,7 +216,9 @@
       content.scrollTop = content.scrollHeight - toBottom
     },
     computed: {
-
+      imageUrl () {
+        return imageUrl
+      },
       // 获取头像
       avatar () {
         return this.$store.state.info.avatar
@@ -247,8 +251,43 @@
       }
     },
     methods: {
-      handleUploadFile () {
-        this.$refs.uploadFile.upload()
+      // 发送成功钩子
+      handleImageSuccess (res) {
+        if (res.status === 1) {
+          // 发送图片消息
+          let msg = {
+            chat_id: this.currentChat.chat_id,
+            msg: res.url,
+            type: 'msg',
+            msg_type: 1,
+            from_id: this.info.id,
+            to_id: this.currentChat.target_id,
+            is_read: 1,
+            avatar: this.avatar
+          }
+          this.send(msg).then(() => {
+            msg.type = 1
+            this.currentChat.msgList.push(msg)
+          })
+        }
+      },
+      // 发送图片beforeUpload钩子
+      handleBeforeUpload (file) {
+        if (Object.keys(this.currentChat).length === 0) {
+          this.$message.error('请先选择聊天人员!')
+          return false
+        }
+        const isImage = file.type.startsWith('image/')
+        const isLt2M = file.size / 1024 / 1024 < 2
+        if (!isImage) {
+          this.$message.error('只能发送图片格式!')
+          return false
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!')
+          return false
+        }
+        return true
       },
       // scroll触发函数，记录每个聊天框滚动条的滚动位置
       handleScroll () {
@@ -417,6 +456,7 @@
           chat_id: this.currentChat.chat_id,
           msg: this.msg,
           type: 'msg',
+          msg_type: 0,
           from_id: this.info.id,
           to_id: this.currentChat.target_id,
           is_read: 1,
@@ -810,10 +850,15 @@
                 div
                     margin: 10px 10px
                     min-height: 50px
-                img
+                .avatar
                     width: $imageSize
                     height: $imageSize
-                    margin-top: 5px
+                    border-radius: 5px
+                    vertical-align: top
+                .chat-image
+                    width: 100px
+                    height: 100px
+                    cursor: pointer
                     border-radius: 5px
                 span
                     background-color: #ffffff
@@ -822,7 +867,6 @@
                     line-height: 25px
                     max-width: 200px
                     min-height: 30px
-                    margin-top: 5px
                     padding: 5px
                     word-break: break-all
                     word-wrap: break-word

@@ -11,6 +11,7 @@ CREATE TABLE `message` (
   `chat_id` int(11) DEFAULT NULL ,
   `time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `msg` varchar(255) DEFAULT NULL,
+  `msg_type` TINYINT NOT NULL DEFAULT 0,
   `is_read` TINYINT DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
