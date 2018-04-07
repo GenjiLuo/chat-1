@@ -12,7 +12,7 @@ return [
         'username' => DB_USER,
         'password' => DB_PWD,
         // [optional]
-        'charset' => 'utf8',
+        'charset' => 'utf8mb4',
         'port' => DB_PORT,
     ]]
 ];
