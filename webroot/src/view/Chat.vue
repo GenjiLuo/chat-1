@@ -66,7 +66,11 @@
                                 <span>好友申请</span>
                                 <sup class="dot" v-show="haveNotReadApply"></sup>
                             </div>
-                            <div v-for="friend in friendList" :key="friend.id" :title="friend.username"
+                            <div @click="visible.applyList = true">
+                                <img src="../assets/random.png">
+                                <span>随机匹配</span>
+                            </div>
+                            <div v-for="friend in filterFriendList" :key="friend.id" :title="friend.username"
                                  @click="selectFriend(friend)" :class="{current: currentFriend.id===friend.id }">
                                 <img :src="friend.avatar">
                                 <span>{{friend.username}}</span>
@@ -248,6 +252,14 @@
           })
         }
         return this.chatList
+      },
+      filterFriendList () {
+        if (this.search.friend !== '') {
+          return this.friendList.filter((element) => {
+            return element.username.indexOf(this.search.friend) !== -1
+          })
+        }
+        return this.friendList
       }
     },
     methods: {
@@ -767,6 +779,8 @@
                     white-space: nowrap
                     border: 1px solid #fff
                 > div:nth-child(1)
+                    border-bottom: 2px solid #DCDFE6
+                > div:nth-child(2)
                     border-bottom: 2px solid #DCDFE6
                 .current
                     background-color: #c6c5c5

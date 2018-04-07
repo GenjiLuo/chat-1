@@ -10,6 +10,7 @@ use common\model\GroupModel;
  * Class Channel
  * @package server\ws\action
  * redis 订阅处理类
+ * 频道名即方法名
  */
 class Channel extends Action{
     
@@ -17,7 +18,9 @@ class Channel extends Action{
     {
         if($this->data[0] === "message"){
             $method = $this->data[1];
-            $this->$method($this->data[2]);
+            if(is_callable([$this,$method])){
+                $this->$method($this->data[2]);
+            }
         }
     }
 
@@ -28,7 +31,7 @@ class Channel extends Action{
         $applyId = $data;
         $applyModel = new FriendApplyModel($this->server->db);
         $apply = $applyModel->selectOne(['id' => $applyId]);
-        //如果申请目标在线,推送有新还有申请标识
+        //如果申请目标在线,推送有申请标识
         if ($this->server->redis->sIsMember("onlineList", $apply['target_id'])) {
             $targetFd = $this->server->redis->hGet('userId:userFd', $apply['target_id']);
             $this->pushNewApply($targetFd);
@@ -52,6 +55,7 @@ class Channel extends Action{
 
     /**
      * @param $data
+     * 重复登陆
      */
     private function closeFD($data){
         $closeFd = $data;
@@ -94,6 +98,10 @@ class Channel extends Action{
         }
     }
 
+    /**
+     * @param $data
+     * 退出群组
+     */
     private function quitGroup($data){
         $chat = json_decode($data,true);
         $groupUserList = (new GroupUserModel($this->server->db))->selectAll(['group_id'=>$chat['target_id']]);
