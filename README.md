@@ -1,6 +1,7 @@
 # Chat
 使用swoole + vue + restful api实现的在线IM，包括一个http服务，一个websocket服务  
-demo  **[点击我](http://119.29.63.161)**  
+**[demo](http://119.29.63.161)**  
+测试账号: zhou 密码:123456
 持续更新中
 ## 功能
 - [x] 注册，登陆，登陆状态维持
