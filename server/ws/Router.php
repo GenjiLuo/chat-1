@@ -34,7 +34,6 @@ class Router{
                 $action->handle();
                 $action->afterAction();
             }
-
         }
     }
 

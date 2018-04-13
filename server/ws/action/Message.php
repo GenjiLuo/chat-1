@@ -24,18 +24,6 @@ class Message extends Action
     public function handle()
     {
         $data = json_decode($this->frame->data, true);
-        $type = $data['type'];
-        if (is_callable([$this, $type])) {
-            $this->$type($data);
-        }
-    }
-
-    /**
-     * @param $data
-     * 发消息
-     */
-    private function msg($data)
-    {
         $redis = $this->server->redis;
         $userId = $this->server->redis->hGet("userFd:userId", $this->frame->fd);
         $messageModel = new MessageModel($this->server->db);
@@ -80,7 +68,6 @@ class Message extends Action
                 if ($redis->sIsMember("onlineList", $chatInfo['target_id'])) { //目标用户在线
                     $reverseMsg['avatar'] = $data['avatar'];
                     $toFd = $redis->hGet("userId:userFd", $chatInfo['target_id']);
-
                     if(isset($newChat)){
                         $this->pushMessage($toFd, ['msg'=>$reverseMsg,'chat'=>$newChat]);
                     }else{
@@ -117,6 +104,15 @@ class Message extends Action
                 }
             }
         }
+    }
+
+    /**
+     * @param $data
+     * 发消息
+     */
+    private function msg($data)
+    {
+
     }
 
 }

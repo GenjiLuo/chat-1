@@ -16,5 +16,4 @@ class Close extends Action{
         // 调用task进程广播用户下线消息
         $this->pushTask(['fd'=>$this->fd,'userId'=>$userId],Task::TASK_OFFLINE);
     }
-
 }
