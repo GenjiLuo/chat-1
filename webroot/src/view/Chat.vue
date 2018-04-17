@@ -194,6 +194,7 @@
         chatList: [],  // 聊天列表
         userList: [],  // 用户列表
         groupUserList: [],
+        sendList: [],//存储所有已发消息
         currentFriend: { // 当前好友
           id: '',
           username: '',
@@ -475,6 +476,7 @@
           avatar: this.avatar
         }
         this.send(msg).then(() => {
+          this.sendList.push(msg)
           this.currentChat.msgList.push(msg)
           this.currentChat.last_chat_time = getNowFormatDate()
           this.msg = ''

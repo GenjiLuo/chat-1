@@ -22,6 +22,7 @@ class Open extends Action
                 $oldFd = $redis->hGet("userId:userFd",$userId);
                 $this->pushRepectConnect($oldFd);
                 $this->server->close($oldFd);
+                return false;
             }
             // 在线用户列表
             $redis->sAdd("onlineList", $userId);
@@ -87,12 +88,6 @@ class Open extends Action
                 $groupChatList[$key]['page'] = 1;
             }
             $chatList = array_merge($groupChatList, $userChatList);
-            // 排序,先按照上下线排序，再按最后聊天排序,已采用客户端排序，此处已无作用
-//            foreach ($chatList as $key => $val) {
-//                $sortArrOne[$key] = $val['last_chat_time'];
-//                $sortArrTwo[$key] = $val['online'];
-//            }
-            // array_multisort($sortArrTwo, SORT_DESC, $sortArrOne, SORT_DESC, $chatList);
             $this->pushChatList($fd, ["chatList" => $chatList]);
             // 调用task进程广播用户上线信息
             $this->pushTask(['userId' => $user['id']], Task::TASK_ONLINE);

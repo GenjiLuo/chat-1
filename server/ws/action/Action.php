@@ -55,6 +55,25 @@ abstract class Action
     const TYPE_AGREE_SUCC = 'agreeSucc';
     const TYPE_NEW_GROUP ='newGroup';
     const TYPE_REPEAT_CONNECT = 'repeatConnect';
+
+    /**
+     * @param $name
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        return $this->server->$name;
+    }
+
+    /**
+     * @param $name
+     * @param $arguments
+     */
+    public function __call($name, $arguments)
+    {
+        call_user_func_array([$this->server,$name],$arguments);
+    }
+
     /**
      * Action constructor.
      * @param array $params
@@ -166,9 +185,6 @@ abstract class Action
         $data['type'] = $type;
         $this->server->task($data, $taskId);
     }
-
-
-
 
     /**
      * @return mixed

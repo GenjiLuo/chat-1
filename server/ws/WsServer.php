@@ -2,6 +2,7 @@
 
 namespace server\ws;
 
+use common\lib\Log;
 use core\interfaces\ServerInterface;
 use common\lib\MyRedis;
 use Medoo\Medoo;
@@ -21,7 +22,7 @@ class WsServer implements ServerInterface
      */
     public function run()
     {
-        cli_set_process_title("WebSocket");
+        cli_set_process_title("SWWebSocket");
         $server = new Server(SERVER_HOST, WS_SERVER_PORT);
         $configFile = BASE_ROOT . "/server/ws/config/server.php";
         if (is_file($configFile)) {

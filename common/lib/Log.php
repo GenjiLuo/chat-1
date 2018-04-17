@@ -21,20 +21,30 @@ class Log{
     }
 
     public function notice(string $str){
-        $this->content=  "[".date("Y-m-d H:i:s")."] NOTICE:".$str.PHP_EOL;
+        $this->content .=  "[".date("Y-m-d H:i:s")."] NOTICE:".$str.PHP_EOL;
     }
 
     public function warning(string $str){
         $this->content .= "[".date("Y-m-d H:i:s")."] WARNING:".$str.PHP_EOL;
     }
 
-    public function handle(){
-        $file = $this->filePath;
-        if(!is_dir($file)){
-            mkdir($file,0777,true);
+    /**
+     * @throws \Exception
+     * 日志写入
+     */
+    public function write(){
+        $path  = $this->filePath;
+        $fileName = date("Y-m-d");
+        $file = $path."/".$fileName;
+        if($handle = fopen($file,'a+')){
+            throw new \Exception('无法打开日志文件');
+        };
+        if(flock($handle,LOCK_EX)){
+            fwrite($handle,$this->content);
+            flock($handle,LOCK_UN);
         }
-        file_put_contents($file."/".date("Y-m-d").".log",$this->content,FILE_APPEND);
-        $this->content = "";
+        fclose($handle);
+
     }
 
 
