@@ -54,17 +54,19 @@ class WsServer implements ServerInterface
         });
         // task任务完成回调
         $server->on("finish", function (Server $server, int $taskId, string $data) {
-
+            $server->log->noticeNow("task任务完成");
         });
         $server->on("managerStart", function (Server $server) {
         });
         // worker start 回调
-        $server->on("WorkerStart", function (Server $server, int $workId) {
+        $server->on("WorkerStart", function (Server $server, int $workerId) {
             // 每个worker各自拥有自己的redis/mysql 连接,在action中通过$this->server->db/redis调用
             $server->redis = App::createObject(MyRedis::class);
             $server->db = App::createObject(Medoo::class);
+            $server->log = new Log($this->config['log_path']);
+            $server->log->noticeNow("worker进程${workerId}启动");
             if (!$server->taskworker) {
-                if ($workId == 0) { // 异步redis 订阅频道，消费http产生的内容
+                if ($workerId == 0) { // 异步redis 订阅频道，消费http产生的内容
                     $redis = new Redis();
                     $redis->on("message", function (Redis $redis, $message) use ($server) {
                         App::$comp->router->dispatch(['server' => $server, 'data'=>$message], 'channel');

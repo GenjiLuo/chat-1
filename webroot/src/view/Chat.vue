@@ -194,7 +194,7 @@
         chatList: [],  // 聊天列表
         userList: [],  // 用户列表
         groupUserList: [],
-        sendList: [],//存储所有已发消息
+        sendList: new Map(), // 存储所有已发消息
         currentFriend: { // 当前好友
           id: '',
           username: '',
@@ -307,11 +307,11 @@
         let doc = document.getElementById('content')
         this.currentChat.scrollBottom = doc.scrollHeight - doc.scrollTop
         if (doc.scrollTop < 10) {
-          this.handleMessageList(this.currentChat)
+          this.fetchMessageList(this.currentChat)
         }
       },
       //  获取聊天记录
-      handleMessageList (chat) {
+      fetchMessageList (chat) {
         if (chat.noMsg !== true && this.getMsgFlag === true) {
           this.visible.loadingMessage = true
           this.getMsgFlag = false
@@ -334,7 +334,6 @@
           })
         }
       },
-
       // 判断消息是否为url
       isLink (msg) {
         return validateURL(msg)
@@ -385,15 +384,11 @@
       },
       // 朋友详情栏点击`发送消息`触发事件
       handleChat (friendId) {
-        let exist = false
         let chat = this.chatList.find(e => parseInt(e.id) === parseInt(friendId))
         if (chat) {
           this.switchInterface('chat')  // 切换到聊天界面
           this.changeChat(chat)    // 将当前聊天对象切换成该聊天
-          exist = true
-        }
-        // 如果聊天不存在,则创建聊天请求
-        if (!exist) {
+        } else {
           createChat({targetId: friendId}).then(res => {
             if (parseInt(res.status) === 1) {
               chat = res.chat
@@ -476,7 +471,7 @@
           avatar: this.avatar
         }
         this.send(msg).then(() => {
-          this.sendList.push(msg)
+          // this.sendList.set()
           this.currentChat.msgList.push(msg)
           this.currentChat.last_chat_time = getNowFormatDate()
           this.msg = ''
@@ -593,11 +588,11 @@
             chat.online = false
             break
           case 'quitGroup':   // 退出群组消息
-            let chatId = data.chatId
-            let userId = data.userId
+            const chatId = data.chatId
+            const userId = data.userId
             chat = this.chatList.find((element) => parseInt(element.chat_id) === parseInt(chatId))
-            let index = chat.userList.findIndex(element => parseInt(element.id) === parseInt(userId))
-            let user = chat.userList.splice(index, 1)
+            const index = chat.userList.findIndex(element => parseInt(element.id) === parseInt(userId))
+            const user = chat.userList.splice(index, 1)
             this.$message.success(`<${user.username}>退出了群组<${chat.group_name}>`)
             break
         }
@@ -626,6 +621,10 @@
     }
   }
 </script>
+<style lang="sass">
+    a
+        text-decoration: none
+</style>
 <style scoped rel="stylesheet/sass" lang="sass">
     $maxHeight: 600px
     $headHeight: 50px

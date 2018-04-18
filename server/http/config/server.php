@@ -4,6 +4,7 @@ return [
     'reactor_num' => 4,
     'worker_num' => 4,
     'max_request'=> 0,
+    'log_path' => BASE_ROOT."/runtime/http"
     //max_conn (max_connection)
 //    'task_worker_num' => 4
 //    task_ipc_mode => 1, //使用unix socket通信，默认模式

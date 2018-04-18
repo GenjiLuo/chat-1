@@ -8,6 +8,7 @@ use core\interfaces\ServerInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Http\Server;
+use common\lib\Log;
 
 class HttpServer implements ServerInterface
 {
@@ -40,6 +41,9 @@ class HttpServer implements ServerInterface
                     $response->end();
                 }
             }
+        });
+        $server->on('WorkerStart',function ($server,$workerId){
+            $server->log = new Log($this->config['log_path']);
         });
         $server->start();
     }

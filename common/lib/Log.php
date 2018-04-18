@@ -1,7 +1,6 @@
 <?php
 namespace common\lib;
-
-class Log{
+class Log {
 
     /**
      * @var string
@@ -17,7 +16,9 @@ class Log{
     public function __construct($filePath)
     {
         $this->filePath = $filePath;
-        $this->content = new \SplQueue();
+        if(!is_dir($this->filePath)){
+            mkdir($this->filePath,0777,true);
+        }
     }
 
     public function notice(string $str){
@@ -36,7 +37,7 @@ class Log{
         $path  = $this->filePath;
         $fileName = date("Y-m-d");
         $file = $path."/".$fileName;
-        if($handle = fopen($file,'a+')){
+        if(!$handle = fopen($file,'a+')){
             throw new \Exception('无法打开日志文件');
         };
         if(flock($handle,LOCK_EX)){
@@ -44,7 +45,17 @@ class Log{
             flock($handle,LOCK_UN);
         }
         fclose($handle);
+        $this->content = '';
+    }
 
+    /**
+     * @param string $str
+     * @throws \Exception
+     */
+    public function noticeNow(string $str){
+        $this->notice($str);
+        $this->write();
+        $this->content = '';
     }
 
 

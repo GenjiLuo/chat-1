@@ -22,7 +22,6 @@ class Open extends Action
                 $oldFd = $redis->hGet("userId:userFd",$userId);
                 $this->pushRepectConnect($oldFd);
                 $this->server->close($oldFd);
-                return false;
             }
             // 在线用户列表
             $redis->sAdd("onlineList", $userId);
@@ -34,7 +33,6 @@ class Open extends Action
             $chatModel = new ChatModel($this->server->db);
             // 用户聊天对象
             $userChatList = $chatModel->findAllWithUser($userId);
-
             foreach ($userChatList as $key => $val) {
                 // 判断是否在线
                 if ($redis->sIsMember('onlineList', $val['id'])) {
